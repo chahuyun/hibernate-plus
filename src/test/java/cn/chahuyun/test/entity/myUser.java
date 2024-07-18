@@ -1,4 +1,4 @@
-package entity;
+package cn.chahuyun.test.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;

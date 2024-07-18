@@ -1,8 +1,10 @@
-import cn.chahuyun.cc.entity.myUser;
+package cn.chahuyun.test;
+
 import cn.chahuyun.hibernateplus.Configuration;
 import cn.chahuyun.hibernateplus.DriveType;
 import cn.chahuyun.hibernateplus.HibernateFactory;
 import cn.chahuyun.hibernateplus.HibernatePlusService;
+import cn.chahuyun.test.entity.myUser;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
