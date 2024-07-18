@@ -2,11 +2,11 @@ plugins {
     id("org.jetbrains.kotlin.jvm") version "1.8.20"
     id("java")
 
-    id ("me.him188.maven-central-publish") version "1.0.0"
+    id("me.him188.maven-central-publish") version "1.0.0-dev-3"
 }
 
 group = "cn.chahuyun"
-version = "1.0-SNAPSHOT"
+version = "1.0.0"
 
 repositories {
     mavenCentral()
@@ -25,7 +25,6 @@ dependencies {
     //logback 日志基本
     implementation("ch.qos.logback:logback-classic:1.5.6")
 
-
     //lombok
     implementation("org.projectlombok:lombok:1.18.8")
     annotationProcessor("org.projectlombok:lombok:1.18.8")
@@ -34,16 +33,17 @@ dependencies {
 
 
 
-mavenCentralPublish{
-    artifactId = "hibernate-plus"
-    groupId = "cn.chahuyun.data"
-    projectName = "hibernate enhanced integration"
+mavenCentralPublish {
+    useCentralS01()
 
-    githubProject("chahuyun", "hibernate-plus")
+    licenseApacheV2()
+
+    singleDevGithubProject("chahuyun", "hibernate-plus")
     developer("moyuyanli")
-    licenseApacheV2()
 
-    // and can be more simplified as
-    singleDevGithubProject("moyuyanli", "hibernate-plus")
-    licenseApacheV2()
+    val temp = System.getenv("PUBLICATION_TEMP")
+    if (temp != null) {
+        workingDir = file("$temp/$projectName")
+    }
+
 }
