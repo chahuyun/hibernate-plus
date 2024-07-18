@@ -6,6 +6,7 @@ import cn.chahuyun.hibernateplus.HibernateFactory;
 import cn.chahuyun.hibernateplus.HibernatePlusService;
 import cn.chahuyun.test.entity.myUser;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.SessionFactory;
 
 import java.io.IOException;
 
@@ -35,6 +36,9 @@ public class Test {
 
         myUser one = HibernateFactory.selectOne(myUser.class, 1);
         log.info(one.toString());
+
+
+        SessionFactory session = HibernateFactory.getSession();
     }
 
 
