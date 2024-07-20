@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "cn.chahuyun"
-version = "1.0.4"
+version = "1.0.5"
 
 repositories {
     mavenCentral()

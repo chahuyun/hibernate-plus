@@ -6,10 +6,14 @@ import lombok.Setter;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 
 /**
  * @author Moyuyanli
@@ -147,14 +151,20 @@ public class Configuration {
             Enumeration<URL> resources = classLoader.getResources("");
             while (resources.hasMoreElements()) {
                 URL resource = resources.nextElement();
-                File directory = new File(resource.getFile());
-                findAndAddClassesInPackageByFile(directory, null, allClasses);
+                if ("file".equals(resource.getProtocol())) {
+                    File directory = new File(URLDecoder.decode(resource.getFile(), StandardCharsets.UTF_8));
+                    findAndAddClassesInPackageByFile(directory, packageName, allClasses);
+                } else if ("jar".equals(resource.getProtocol())) {
+                    String jarPath = URLDecoder.decode(resource.getPath(), StandardCharsets.UTF_8);
+                    findAndAddClassesInPackageByJar(jarPath.substring(5, jarPath.indexOf("!")), null, allClasses);
+                }
             }
         } catch (IOException e) {
             throw new RuntimeException("Error loading entities from package", e);
         }
         return allClasses;
     }
+
 
     private Set<Class<?>> loadEntitiesFromPackage(ClassLoader classLoader, String packageName) {
         Set<Class<?>> classes = new HashSet<>();
@@ -163,13 +173,57 @@ public class Configuration {
             Enumeration<URL> resources = classLoader.getResources(path);
             while (resources.hasMoreElements()) {
                 URL resource = resources.nextElement();
-                File directory = new File(resource.getFile());
-                findAndAddClassesInPackageByFile(directory, packageName, classes);
+                if ("file".equals(resource.getProtocol())) {
+                    File directory = new File(URLDecoder.decode(resource.getFile(), StandardCharsets.UTF_8));
+                    findAndAddClassesInPackageByFile(directory, packageName, classes);
+                } else if ("jar".equals(resource.getProtocol())) {
+                    String jarPath = URLDecoder.decode(resource.getPath(), StandardCharsets.UTF_8);
+                    findAndAddClassesInPackageByJar(jarPath.substring(5, jarPath.indexOf("!")), packageName, classes);
+                }
             }
         } catch (IOException e) {
             throw new RuntimeException("Error loading entities from package", e);
         }
         return classes;
+    }
+
+    private void findAndAddClassesInPackageByJar(String jarPath, String packageName, Set<Class<?>> classes) {
+        try (JarFile jarFile = new JarFile(jarPath)) {
+            Enumeration<JarEntry> entries = jarFile.entries();
+            while (entries.hasMoreElements()) {
+                JarEntry entry = entries.nextElement();
+                String name = entry.getName();
+                if (noPackNameScanEntity(packageName)) continue;
+                if (name.endsWith(".class") && name.startsWith(packageName.replace('.', '/') + "/")) {
+                    String className = name.substring(0, name.indexOf(".class")).replace('/', '.');
+                    try {
+                        Class<?> clazz = Class.forName(className, false, classLoader);
+                        if (clazz.isAnnotationPresent(jakarta.persistence.Entity.class)) {
+                            classes.add(clazz);
+                        }
+                    } catch (ClassNotFoundException e) {
+                        throw new RuntimeException("Error loading class", e);
+                    }
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Error processing JAR file", e);
+        }
+    }
+
+    private boolean noPackNameScanEntity(String packageName) {
+        if (packageName != null && this.packageName == null) {
+            String[] subPackageNames = {"entry", "entity", "entities", "model", "models", "bean", "beans", "dto"};
+            boolean isContinue = true;
+            for (String subPackageName : subPackageNames) {
+                if (packageName.lastIndexOf(subPackageName) != -1) {
+                    isContinue = false;
+                    break;
+                }
+            }
+            return isContinue;
+        }
+        return false;
     }
 
 
@@ -181,19 +235,7 @@ public class Configuration {
                     String nPackageName = packageName == null ? file.getName() : packageName + "." + file.getName();
                     findAndAddClassesInPackageByFile(file, nPackageName, classes);
                 } else {
-                    if (packageName != null && this.packageName == null) {
-                        String[] subPackageNames = {"entry", "entity", "entities", "model", "models", "bean", "beans", "dto"};
-                        boolean isContinue = true;
-                        for (String subPackageName : subPackageNames) {
-                            if (packageName.lastIndexOf(subPackageName) != -1) {
-                                isContinue = false;
-                                break;
-                            }
-                        }
-                        if (isContinue) {
-                            continue;
-                        }
-                    }
+                    if (noPackNameScanEntity(packageName)) break;
                     if (file.getName().endsWith(".class")) {
                         String className = packageName + '.' + file.getName().substring(0, file.getName().length() - 6);
                         try {
