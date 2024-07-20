@@ -130,7 +130,7 @@ public class Configuration {
             throw new RuntimeException("数据库配置:类加载器(classLoader)为空!");
         }
         Set<Class<?>> entityClasses;
-        if (packageName == null || password.trim().isBlank()) {
+        if (packageName == null || packageName.trim().isBlank()) {
             entityClasses = findEntityClasses(classLoader);
         } else {
             entityClasses = loadEntitiesFromPackage(classLoader, packageName);
