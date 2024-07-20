@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "cn.chahuyun"
-version = "1.0.2"
+version = "1.0.3"
 
 repositories {
     mavenCentral()
@@ -23,10 +23,9 @@ dependencies {
 //    implementation ("jakarta.persistence:jakarta.persistence-api:3.2.0")
 
     //hibernate orm基本
-    implementation(platform("org.hibernate.orm:hibernate-platform:6.5.2.Final"))
-    api("org.hibernate.orm:hibernate-core")
-    api("org.hibernate.orm:hibernate-hikaricp")
-    api("org.hibernate.orm:hibernate-community-dialects")
+    api("org.hibernate.orm:hibernate-core:6.5.2.Final")
+    api("org.hibernate.orm:hibernate-hikaricp:6.5.2.Final")
+    api("org.hibernate.orm:hibernate-community-dialects:6.5.2.Final")
 
     //logback 日志基本
     implementation("ch.qos.logback:logback-classic:1.5.6")
