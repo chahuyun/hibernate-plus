@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "cn.chahuyun"
-version = "1.0.1"
+version = "1.0.2"
 
 repositories {
     mavenCentral()
@@ -19,6 +19,9 @@ dependencies {
     api("com.mysql:mysql-connector-j:8.3.0")
     api("com.h2database:h2:2.2.224")
     api("org.hibernate.orm:hibernate-hikaricp:6.5.2.Final")
+
+    //jakarta persistence api
+    implementation ("jakarta.persistence:jakarta.persistence-api:3.2.0")
 
     //hibernate orm基本
     implementation("org.hibernate.orm:hibernate-core:6.5.2.Final")
