@@ -7,8 +7,11 @@ import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.service.ServiceRegistry;
 
 import java.io.IOException;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Properties;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Moyuyanli
@@ -63,9 +66,15 @@ public class HibernatePlusService {
 
     private static void extracted(Configuration configuration, MetadataSources sources) {
         Set<Class<?>> entityClass = configuration.toEntityClass();
-        for (Class<?> aClass : entityClass) {
+
+        List<Class<?>> classes = entityClass.stream()
+                .sorted(Comparator.comparingInt(c -> c.getSuperclass() == null ? 0 : 1))
+                .collect(Collectors.toList());
+
+        for (Class<?> aClass : classes) {
             sources.addAnnotatedClass(aClass);
         }
+        
         Metadata metadata = sources.getMetadataBuilder().build();
         HibernateFactory factory = new HibernateFactory(metadata.getSessionFactoryBuilder().build());
         HibernateFactory.setFactory(factory);
