@@ -52,6 +52,20 @@ public class HibernateFactory {
     }
 
     /**
+     * 查询一个单一对象
+     *
+     * @param tClass 对象类
+     * @param field  字段
+     * @param value  值
+     * @param <T>    对象类Class
+     * @return 对象 或 null
+     */
+    @SuppressWarnings("all")
+    public static <T> T selectOne(Class<T> tClass, String field, Object value) {
+        return factory.sessionFactory.fromSession(session -> session.createQuery(String.format("from %s where %s = :%s", tClass.getSimpleName(), field, value), tClass).getSingleResultOrNull());
+    }
+
+    /**
      * 查询一个单一对象<br>
      * <br>
      * 参数格式：<br>
