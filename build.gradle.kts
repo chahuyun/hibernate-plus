@@ -18,13 +18,16 @@ dependencies {
     api("org.xerial:sqlite-jdbc:3.45.3.0")
     api("com.mysql:mysql-connector-j:8.3.0")
     api("com.h2database:h2:2.2.224")
-    api("org.hibernate.orm:hibernate-hikaricp:6.5.2.Final")
 
     //jakarta persistence api
-    implementation ("jakarta.persistence:jakarta.persistence-api:3.2.0")
+//    implementation ("jakarta.persistence:jakarta.persistence-api:3.2.0")
 
     //hibernate orm基本
-    implementation("org.hibernate.orm:hibernate-core:6.5.2.Final")
+    implementation(platform("org.hibernate.orm:hibernate-platform:6.5.2.Final"))
+    api("org.hibernate.orm:hibernate-core")
+    api("org.hibernate.orm:hibernate-hikaricp")
+    api("org.hibernate.orm:hibernate-community-dialects")
+
     //logback 日志基本
     implementation("ch.qos.logback:logback-classic:1.5.6")
 
