@@ -9,6 +9,7 @@ import org.hibernate.query.criteria.JpaRoot;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -96,6 +97,22 @@ public class HibernateFactory {
         }
         return factory.sessionFactory.fromSession(session -> {
             JpaCriteriaQuery<T> query = getQuery(tClass, params, session);
+            return session.createQuery(query).list();
+        });
+    }
+
+
+    /**
+     * 查询集合
+     * <p>
+     *
+     * @param tClass 对象类
+     * @param <T>    对象类Class
+     * @return 结果集
+     */
+    public static <T> List<T> selectList(Class<T> tClass) {
+        return factory.sessionFactory.fromSession(session -> {
+            JpaCriteriaQuery<T> query = getQuery(tClass, new HashMap<>(), session);
             return session.createQuery(query).list();
         });
     }

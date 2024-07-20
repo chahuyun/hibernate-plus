@@ -41,9 +41,14 @@ mavenCentralPublish {
     singleDevGithubProject("chahuyun", "hibernate-plus")
     developer("moyuyanli")
 
-    val temp = System.getenv("PUBLICATION_TEMP")
-    if (temp != null) {
-        workingDir = file("$temp/$projectName")
-    }
+
+    // 设置 Publish 临时目录
+    workingDir = System.getenv("PUBLICATION_TEMP")?.let { file(it).resolve(projectName) }
+        ?: buildDir.resolve("publishing-tmp")
+
+    // 设置额外上传内容
+//    publication {
+//        artifact(tasks["jar"])
+//    }
 
 }
