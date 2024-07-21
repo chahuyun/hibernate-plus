@@ -1,5 +1,6 @@
 package cn.chahuyun.hibernateplus;
 
+import jakarta.persistence.Embeddable;
 import jakarta.persistence.Entity;
 import jakarta.persistence.MappedSuperclass;
 import lombok.extern.slf4j.Slf4j;
@@ -103,7 +104,8 @@ public class HibernatePlusService {
                 .forPackage(packageName, classLoader)
                 .addClassLoaders(classLoader));
 
-        QueryFunction<Store, Class<?>> queryFunction = Scanners.TypesAnnotated.of(Entity.class, MappedSuperclass.class)
+
+        QueryFunction<Store, Class<?>> queryFunction = Scanners.TypesAnnotated.of(Entity.class, Embeddable.class, MappedSuperclass.class)
                 .asClass(classLoader);
 
         return queryFunction.apply(reflections.getStore());
