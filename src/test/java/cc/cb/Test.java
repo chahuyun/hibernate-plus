@@ -27,7 +27,7 @@ public class Test {
         configuration.setUser("root");
         configuration.setPassword("123456");
 
-        configuration.setPackageName("cc.cb.entity");
+//        configuration.setPackageName("cc.cb.entity");
 
         HibernatePlusService.loadingService(configuration);
 
