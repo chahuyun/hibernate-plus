@@ -49,6 +49,11 @@ public class Configuration {
     private String packageName;
 
     /**
+     * 实现本类
+     */
+    private Class<?> baseClass;
+
+    /**
      * 类加载器
      */
     private ClassLoader classLoader;
@@ -57,6 +62,11 @@ public class Configuration {
      * 数据库自动重连
      */
     private boolean isAutoReconnect = false;
+
+
+    public Configuration(Class<?> baseClass) {
+        setBaseClass(baseClass);
+    }
 
     /**
      * 转换为 properties
@@ -124,11 +134,40 @@ public class Configuration {
         return properties;
     }
 
+    public void setBaseClass(Class<?> baseClass) {
+        this.baseClass = baseClass;
+        this.classLoader = baseClass.getClassLoader();
+    }
+
+    protected String resolvePackageName() {
+        if (packageName != null) {
+            return packageName;
+        }
+
+        if (baseClass == null) {
+            throw new RuntimeException("baseClass is null !");
+        }
+
+        this.packageName = baseClass.getPackageName();
+        String packagePath = this.packageName.replace('.', '/');
+        String[] keywords = {"entry", "entity", "entities", "model", "models", "bean", "beans", "dto"};
+
+        for (String keyword : keywords) {
+            URL resource = classLoader.getResource(packagePath + '/' + keyword);
+            if (resource != null) {
+                return packageName + '.' + keyword;
+            }
+        }
+
+        return packageName;
+    }
+
     /**
      * 根据classLoader寻找带有{@link jakarta.persistence.Entity}的实体类
      *
      * @return 类set
      */
+    @Deprecated(since = "1.0.7")
     protected Set<Class<?>> toEntityClass() {
         if (classLoader == null) {
             throw new RuntimeException("数据库配置:类加载器(classLoader)为空!");

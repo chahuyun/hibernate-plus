@@ -1,17 +1,21 @@
 package cn.chahuyun.hibernateplus;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.MappedSuperclass;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.boot.Metadata;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.service.ServiceRegistry;
+import org.reflections.Reflections;
+import org.reflections.Store;
+import org.reflections.scanners.Scanners;
+import org.reflections.util.ConfigurationBuilder;
+import org.reflections.util.QueryFunction;
 
 import java.io.IOException;
-import java.util.Comparator;
-import java.util.List;
 import java.util.Properties;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * @author Moyuyanli
@@ -25,8 +29,14 @@ public class HibernatePlusService {
 
     }
 
-    public static Configuration createConfiguration() {
-        return new Configuration();
+    /**
+     * 创建自定义配置
+     *
+     * @param clazz 加载类
+     * @return {@link Configuration} 自定义配置
+     */
+    public static Configuration createConfiguration(Class<?> clazz) {
+        return new Configuration(clazz);
     }
 
     /**
@@ -47,10 +57,13 @@ public class HibernatePlusService {
     /**
      * 从 hibernate.properties 文件加载 hibernate 服务
      *
-     * @param classLoader 类加载器
+     * @param clazz 启动类
      */
-    public static void loadingService(ClassLoader classLoader) throws IOException {
+    public static void loadingService(Class<?> clazz) throws IOException {
+        Configuration configuration = new Configuration(clazz);
+
         Properties properties = new Properties();
+        ClassLoader classLoader = configuration.getClassLoader();
         properties.load(classLoader.getResourceAsStream("/hibernate.properties"));
 
         ServiceRegistry serviceRegistry = new StandardServiceRegistryBuilder()
@@ -58,26 +71,42 @@ public class HibernatePlusService {
                 .build();
 
         MetadataSources sources = new MetadataSources(serviceRegistry);
-        Configuration configuration = new Configuration();
+
         configuration.setClassLoader(classLoader);
         extracted(configuration, sources);
         log.info("Hibernate 加载成功!");
     }
 
     private static void extracted(Configuration configuration, MetadataSources sources) {
-        Set<Class<?>> entityClass = configuration.toEntityClass();
+        Thread.currentThread().setContextClassLoader(configuration.getClassLoader());
 
-        List<Class<?>> classes = entityClass.stream()
-                .sorted(Comparator.comparingInt(c -> c.getSuperclass() == null ? 0 : 1))
-                .collect(Collectors.toList());
+        Set<Class<?>> classes = scanEntity(configuration);
 
         for (Class<?> aClass : classes) {
             sources.addAnnotatedClass(aClass);
         }
-        
+
         Metadata metadata = sources.getMetadataBuilder().build();
         HibernateFactory factory = new HibernateFactory(metadata.getSessionFactoryBuilder().build());
         HibernateFactory.setFactory(factory);
+    }
+
+    private static Set<Class<?>> scanEntity(Configuration configuration) {
+        ClassLoader classLoader = configuration.getClassLoader();
+        String packageName = configuration.resolvePackageName();
+        if (classLoader == null) {
+            throw new RuntimeException("classloader is null !");
+        }
+
+        // 创建ConfigurationBuilder并设置自定义ClassLoader
+        Reflections reflections = new Reflections(new ConfigurationBuilder()
+                .forPackage(packageName, classLoader)
+                .addClassLoaders(classLoader));
+
+        QueryFunction<Store, Class<?>> queryFunction = Scanners.TypesAnnotated.of(Entity.class, MappedSuperclass.class)
+                .asClass(classLoader);
+
+        return queryFunction.apply(reflections.getStore());
     }
 
 
