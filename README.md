@@ -3,6 +3,10 @@ hibernate enhanced integration
 
 hibernate 的一个强化集成模块
 
+用于以最小的程度连接你的数据库，为你带来最舒服的数据持久化。
+
+本项目大部分借鉴于[mirai-hibernate-plugin](https://github.com/cssxsh/mirai-hibernate-plugin)
+
 ### 使用方法
 
 在你的项目中引用
