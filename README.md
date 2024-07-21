@@ -87,5 +87,13 @@ log.info("===========================");
 SessionFactory session = HibernateFactory.getSession();
 ```
 
+### 自定义使用
+
+你也可以不使用我给你的推荐配置，只需要在resources目录下填写`hibernate.properties`就行，然后通过
+```java
+HibernatePlusService.loadingService(Test.class);
+```
+就可以使用自定义配置进行连接
+
 
 
