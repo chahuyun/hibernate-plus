@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "cn.chahuyun"
-version = "1.0.6"
+version = "1.0.7"
 
 repositories {
     mavenCentral()
@@ -18,6 +18,8 @@ dependencies {
     api("org.xerial:sqlite-jdbc:3.45.3.0")
     api("com.mysql:mysql-connector-j:8.3.0")
     api("com.h2database:h2:2.2.224")
+
+    api("org.reflections:reflections:0.10.2")
 
     //jakarta persistence api
 //    implementation ("jakarta.persistence:jakarta.persistence-api:3.2.0")
