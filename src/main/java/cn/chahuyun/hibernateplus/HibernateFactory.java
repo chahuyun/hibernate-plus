@@ -62,7 +62,7 @@ public class HibernateFactory {
      */
     @SuppressWarnings("all")
     public static <T> T selectOne(Class<T> tClass, String field, Object value) {
-        return factory.sessionFactory.fromSession(session -> session.createQuery(String.format("from %s where %s = :%s", tClass.getSimpleName(), field, value), tClass).getSingleResultOrNull());
+        return factory.sessionFactory.fromSession(session -> session.createQuery(String.format("from %s where %s = %s", tClass.getSimpleName(), field, value), tClass).getSingleResultOrNull());
     }
 
     /**
