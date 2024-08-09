@@ -81,7 +81,7 @@ public class HibernateFactory {
      * @param <T>    对象类Class
      * @return 对象 或 null
      */
-    public static <T> T selectOne(Class<T> tClass, Map<String, String> params) {
+    public static <T> T selectOne(Class<T> tClass, Map<String, Object> params) {
         if (params.isEmpty()) {
             return null;
         }
@@ -105,7 +105,7 @@ public class HibernateFactory {
      * @param <T>    对象类Class
      * @return 结果集
      */
-    public static <T> List<T> selectList(Class<T> tClass, Map<String, String> params) {
+    public static <T> List<T> selectList(Class<T> tClass, Map<String, Object> params) {
         if (params.isEmpty()) {
             return null;
         }
@@ -193,12 +193,12 @@ public class HibernateFactory {
     }
 
     @NotNull
-    private static <T> JpaCriteriaQuery<T> getQuery(Class<T> tClass, Map<String, String> params, Session session) {
+    private static <T> JpaCriteriaQuery<T> getQuery(Class<T> tClass, Map<String, Object> params, Session session) {
         HibernateCriteriaBuilder builder = session.getCriteriaBuilder();
         JpaCriteriaQuery<T> query = builder.createQuery(tClass);
         JpaRoot<T> from = query.from(tClass);
         query.select(from);
-        for (Map.Entry<String, String> entry : params.entrySet()) {
+        for (Map.Entry<String, Object> entry : params.entrySet()) {
             query.where(builder.equal(from.get(entry.getKey()), entry.getValue()));
         }
         return query;
