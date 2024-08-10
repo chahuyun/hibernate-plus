@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "cn.chahuyun"
-version = "1.0.8"
+version = "1.0.9"
 
 repositories {
     mavenCentral()
@@ -47,7 +47,6 @@ mavenCentralPublish {
 
     singleDevGithubProject("chahuyun", "hibernate-plus")
     developer("moyuyanli")
-
 
     // 设置 Publish 临时目录
     workingDir = System.getenv("PUBLICATION_TEMP")?.let { file(it).resolve(projectName) }

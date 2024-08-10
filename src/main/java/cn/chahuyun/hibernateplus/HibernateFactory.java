@@ -62,7 +62,10 @@ public class HibernateFactory {
      */
     @SuppressWarnings("all")
     public static <T> T selectOne(Class<T> tClass, String field, Object value) {
-        return factory.sessionFactory.fromSession(session -> session.createQuery(String.format("from %s where %s = %s", tClass.getSimpleName(), field, value), tClass).getSingleResultOrNull());
+        if (field == null || value == null) {
+            return null;
+        }
+        return factory.sessionFactory.fromSession(session -> session.createQuery(getQuery(tClass, field, value, session)).getSingleResultOrNull());
     }
 
     /**
@@ -137,23 +140,16 @@ public class HibernateFactory {
      * <p>
      *
      * @param tClass 对象类
-     * @param key    条件字段
-     * @param param  条件值
+     * @param field  条件字段
+     * @param value  条件值
      * @param <T>    对象类Class
      * @return 结果集
      */
-    public static <T> List<T> selectList(Class<T> tClass, String key, Object param) {
-        if (key == null || param == null) {
+    public static <T> List<T> selectList(Class<T> tClass, String field, Object value) {
+        if (field == null || value == null) {
             return new ArrayList<>(1);
         }
-        return factory.sessionFactory.fromSession(session -> {
-            HibernateCriteriaBuilder builder = session.getCriteriaBuilder();
-            JpaCriteriaQuery<T> query = builder.createQuery(tClass);
-            JpaRoot<T> from = query.from(tClass);
-            query.select(from);
-            query.where(builder.equal(from.get(key), param));
-            return session.createQuery(query).list();
-        });
+        return factory.sessionFactory.fromSession(session -> session.createQuery(getQuery(tClass, field, value, session)).list());
     }
 
     /**
@@ -201,6 +197,16 @@ public class HibernateFactory {
         for (Map.Entry<String, Object> entry : params.entrySet()) {
             query.where(builder.equal(from.get(entry.getKey()), entry.getValue()));
         }
+        return query;
+    }
+
+    @NotNull
+    private static <T> JpaCriteriaQuery<T> getQuery(Class<T> tClass, String filed, Object value, Session session) {
+        HibernateCriteriaBuilder builder = session.getCriteriaBuilder();
+        JpaCriteriaQuery<T> query = builder.createQuery(tClass);
+        JpaRoot<T> from = query.from(tClass);
+        query.select(from);
+        query.where(builder.equal(from.get(filed), value));
         return query;
     }
 
