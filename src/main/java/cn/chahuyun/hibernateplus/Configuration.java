@@ -44,6 +44,15 @@ public class Configuration {
     private String password;
 
     /**
+     * 是否显示sql
+     */
+    private boolean isShowSql = false;
+    /**
+     * 是否显示sql
+     */
+    private boolean isFormatSql = false;
+
+    /**
      * 包含实体的包名
      */
     private String packageName;
@@ -113,8 +122,6 @@ public class Configuration {
                     properties.setProperty("hibernate.connection.password", password);
                 }
                 properties.setProperty("hibernate.autoReconnect", "true");
-                properties.setProperty("hibernate.connection.username", "");
-                properties.setProperty("hibernate.connection.password", "");
                 properties.setProperty("hibernate.current_session_context_class", "thread");
                 break;
             case MYSQL:
@@ -128,7 +135,9 @@ public class Configuration {
                 properties.setProperty("hibernate.connection.provider_class", "org.hibernate.hikaricp.internal.HikariCPConnectionProvider");
                 properties.setProperty("hibernate.connection.isolation", "1");
                 properties.setProperty("hibernate.hbm2ddl.auto", "update");
-                properties.setProperty("hibernate.autoReconnect", "true");
+                properties.setProperty("hibernate.autoReconnect", String.valueOf(isAutoReconnect));
+                properties.setProperty("hibernate.show_sql", String.valueOf(isShowSql));
+                properties.setProperty("hibernate.format_sql", String.valueOf(isFormatSql));
                 break;
         }
         return properties;
