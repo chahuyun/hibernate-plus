@@ -195,7 +195,7 @@ public class HibernateFactory {
         Root<T> from = query.from(tClass);
         query.select(from);
         for (Map.Entry<String, Object> entry : params.entrySet()) {
-            query.where(builder.equal(from.get(entry.getKey()), entry.getValue()));
+            query = query.where(builder.equal(from.get(entry.getKey()), entry.getValue()));
         }
         return query;
     }
