@@ -1,11 +1,11 @@
 package cn.chahuyun.hibernateplus;
 
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.query.criteria.HibernateCriteriaBuilder;
-import org.hibernate.query.criteria.JpaCriteriaQuery;
-import org.hibernate.query.criteria.JpaRoot;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -89,7 +89,7 @@ public class HibernateFactory {
             return null;
         }
         return factory.sessionFactory.fromSession(session -> {
-            JpaCriteriaQuery<T> query = getQuery(tClass, params, session);
+            CriteriaQuery<T> query = getQuery(tClass, params, session);
             List<T> list = session.createQuery(query).list();
             if (list == null || list.isEmpty()) {
                 return null;
@@ -113,7 +113,7 @@ public class HibernateFactory {
             return null;
         }
         return factory.sessionFactory.fromSession(session -> {
-            JpaCriteriaQuery<T> query = getQuery(tClass, params, session);
+            CriteriaQuery<T> query = getQuery(tClass, params, session);
             return session.createQuery(query).list();
         });
     }
@@ -129,7 +129,7 @@ public class HibernateFactory {
      */
     public static <T> List<T> selectList(Class<T> tClass) {
         return factory.sessionFactory.fromSession(session -> {
-            JpaCriteriaQuery<T> query = getQuery(tClass, new HashMap<>(), session);
+            CriteriaQuery<T> query = getQuery(tClass, new HashMap<>(), session);
             return session.createQuery(query).list();
         });
     }
@@ -189,10 +189,10 @@ public class HibernateFactory {
     }
 
     @NotNull
-    private static <T> JpaCriteriaQuery<T> getQuery(Class<T> tClass, Map<String, Object> params, Session session) {
-        HibernateCriteriaBuilder builder = session.getCriteriaBuilder();
-        JpaCriteriaQuery<T> query = builder.createQuery(tClass);
-        JpaRoot<T> from = query.from(tClass);
+    private static <T> CriteriaQuery<T> getQuery(Class<T> tClass, Map<String, Object> params, Session session) {
+        CriteriaBuilder builder = session.getCriteriaBuilder();
+        CriteriaQuery<T> query = builder.createQuery(tClass);
+        Root<T> from = query.from(tClass);
         query.select(from);
         for (Map.Entry<String, Object> entry : params.entrySet()) {
             query.where(builder.equal(from.get(entry.getKey()), entry.getValue()));
@@ -201,10 +201,10 @@ public class HibernateFactory {
     }
 
     @NotNull
-    private static <T> JpaCriteriaQuery<T> getQuery(Class<T> tClass, String filed, Object value, Session session) {
-        HibernateCriteriaBuilder builder = session.getCriteriaBuilder();
-        JpaCriteriaQuery<T> query = builder.createQuery(tClass);
-        JpaRoot<T> from = query.from(tClass);
+    private static <T> CriteriaQuery<T> getQuery(Class<T> tClass, String filed, Object value, Session session) {
+        CriteriaBuilder builder = session.getCriteriaBuilder();
+        CriteriaQuery<T> query = builder.createQuery(tClass);
+        Root<T> from = query.from(tClass);
         query.select(from);
         query.where(builder.equal(from.get(filed), value));
         return query;
