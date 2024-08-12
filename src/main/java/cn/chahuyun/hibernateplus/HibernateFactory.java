@@ -6,6 +6,8 @@ import jakarta.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.query.Query;
+import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -99,6 +101,32 @@ public class HibernateFactory {
         });
     }
 
+
+    /**
+     * 查询一个单一对象<br>
+     * <br>
+     * map参数格式：<br>
+     * key -> 对象字段<br>
+     * value -> 条件<br>
+     * <br><br>
+     * 更多自定义查询请自行使用 {@link  SessionFactory} 建立查询
+     *
+     * @param tClass     对象类
+     * @param hql        sql
+     * @param parameters 参数列表
+     * @param <T>        对象类Class
+     * @return 对象 或 null
+     */
+    public static <T> T selectOneByHql(Class<T> tClass, @Language("hql") String hql, Map<String, Object> parameters) {
+        return factory.sessionFactory.fromSession(session -> {
+            Query<T> query = session.createQuery(hql, tClass);
+            for (Map.Entry<String, Object> entry : parameters.entrySet()) {
+                query.setParameter(entry.getKey(), entry.getValue());
+            }
+            return query.getSingleResult();
+        });
+    }
+
     /**
      * 查询集合
      * <p>
@@ -150,6 +178,26 @@ public class HibernateFactory {
             return new ArrayList<>(1);
         }
         return factory.sessionFactory.fromSession(session -> session.createQuery(getQuery(tClass, field, value, session)).list());
+    }
+
+    /**
+     * 查询集合
+     * <p>
+     *
+     * @param tClass     对象类
+     * @param hql        hql
+     * @param parameters 参数
+     * @param <T>        对象类Class
+     * @return 结果集
+     */
+    public static <T> List<T> selectListByHql(Class<T> tClass, @Language("hql") String hql, Map<String, Object> parameters) {
+        return factory.sessionFactory.fromSession(session -> {
+            Query<T> query = session.createQuery(hql, tClass);
+            for (Map.Entry<String, Object> entry : parameters.entrySet()) {
+                query.setParameter(entry.getKey(), entry.getValue());
+            }
+            return query.list();
+        });
     }
 
     /**
