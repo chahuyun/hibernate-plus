@@ -16,6 +16,8 @@ dependencies {
     api("com.zaxxer:HikariCP:5.1.0")
     api("org.slf4j:slf4j-api:2.0.9")
     api("org.xerial:sqlite-jdbc:3.45.3.0")
+    //Hibernate 6 sqlite方言
+    api("com.github.gwenn:sqlite-dialect:0.1.4")
     api("com.mysql:mysql-connector-j:8.3.0")
     api("com.h2database:h2:2.2.224")
 
