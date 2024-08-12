@@ -205,8 +205,7 @@ public class HibernateFactory {
         CriteriaBuilder builder = session.getCriteriaBuilder();
         CriteriaQuery<T> query = builder.createQuery(tClass);
         Root<T> from = query.from(tClass);
-        query.select(from);
-        query.where(builder.equal(from.get(filed), value));
+        query.select(from).where(builder.equal(from.get(filed), value));
         return query;
     }
 
