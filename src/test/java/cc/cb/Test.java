@@ -1,12 +1,15 @@
 package cc.cb;
 
 import cc.cb.entity.MyUser;
+import cc.cb.entity.TitleInfo;
 import cn.chahuyun.hibernateplus.Configuration;
 import cn.chahuyun.hibernateplus.DriveType;
 import cn.chahuyun.hibernateplus.HibernateFactory;
 import cn.chahuyun.hibernateplus.HibernatePlusService;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Moyuyanli
@@ -25,9 +28,11 @@ public class Test {
         configuration.setAddress("localhost:3306/test");
         configuration.setAutoReconnect(true);
         configuration.setUser("root");
-        configuration.setPassword("123456");
+        configuration.setPassword("Zz123456");
+        configuration.setShowSql(true);
+        configuration.setFormatSql(true);
 
-//        configuration.setPackageName("cc.cb.entity");
+        configuration.setPackageName("cc.cb.entity");
 
         HibernatePlusService.loadingService(configuration);
 
@@ -54,6 +59,20 @@ public class Test {
         log.info(selectOne.toString());
 
         log.info("===========================");
+
+
+        log.info("==========one=============");
+        Map<String, Object> params = new HashMap<>();
+        params.put("code", "monopoly-0");
+        params.put("userId", 123456);
+        TitleInfo titleInfo = HibernateFactory.selectOne(TitleInfo.class, params);
+        if (titleInfo != null) {
+            log.info(titleInfo.toString());
+        } else {
+            log.info("titleInfo is null");
+        }
+        log.info("===========================");
+
     }
 
 }
