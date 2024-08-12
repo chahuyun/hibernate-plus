@@ -100,7 +100,7 @@ public class Configuration {
             case H2:
                 properties.setProperty("hibernate.connection.url", url);
                 properties.setProperty("hibernate.connection.driver_class", driveType.getDriverClass());
-                properties.setProperty("hibernate.dialect", "org.hibernate.community.dialect.H2Dialect");
+                properties.setProperty("hibernate.dialect", "org.hibernate.dialect.H2Dialect");
                 properties.setProperty("hibernate.connection.provider_class", "org.hibernate.hikaricp.internal.HikariCPConnectionProvider");
                 properties.setProperty("hibernate.connection.isolation", "1");
                 properties.setProperty("hibernate.hbm2ddl.auto", "update");
@@ -109,7 +109,7 @@ public class Configuration {
             case SQLITE:
                 properties.setProperty("hibernate.connection.url", url);
                 properties.setProperty("hibernate.connection.driver_class", driveType.getDriverClass());
-                properties.setProperty("hibernate.dialect", "org.hibernate.dialect.SQLiteDialect");
+                properties.setProperty("hibernate.dialect", "org.hibernate.community.dialect.SQLiteDialect");
                 properties.setProperty("hibernate.connection.provider_class", "org.hibernate.hikaricp.internal.HikariCPConnectionProvider");
                 properties.setProperty("hibernate.hikari.connectionTimeout", "180000");
                 properties.setProperty("hibernate.connection.isolation", "1");
