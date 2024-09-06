@@ -2,6 +2,7 @@ package cn.chahuyun.hibernateplus;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
@@ -14,6 +15,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * hibernate工厂
@@ -90,15 +92,7 @@ public class HibernateFactory {
         if (params.isEmpty()) {
             return null;
         }
-        return factory.sessionFactory.fromSession(session -> {
-            CriteriaQuery<T> query = getQuery(tClass, params, session);
-            List<T> list = session.createQuery(query).list();
-            if (list == null || list.isEmpty()) {
-                return null;
-            } else {
-                return list.get(0);
-            }
-        });
+        return factory.sessionFactory.fromSession(session -> session.createQuery(getQuery(tClass, params, session)).getSingleResultOrNull());
     }
 
 
@@ -241,10 +235,9 @@ public class HibernateFactory {
         CriteriaBuilder builder = session.getCriteriaBuilder();
         CriteriaQuery<T> query = builder.createQuery(tClass);
         Root<T> from = query.from(tClass);
-        query.select(from);
-        for (Map.Entry<String, Object> entry : params.entrySet()) {
-            query = query.where(builder.equal(from.get(entry.getKey()), entry.getValue()));
-        }
+        query = query.select(from);
+        List<Predicate> collect = params.entrySet().stream().map(entry -> builder.equal(from.get(entry.getKey()), entry.getValue())).collect(Collectors.toList());
+        query.where(collect.toArray(new Predicate[0]));
         return query;
     }
 
