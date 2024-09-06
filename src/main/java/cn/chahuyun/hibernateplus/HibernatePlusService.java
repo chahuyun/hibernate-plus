@@ -52,7 +52,7 @@ public class HibernatePlusService {
 
         MetadataSources sources = new MetadataSources(serviceRegistry);
         extracted(configuration, sources);
-        log.info("Hibernate 加载成功!");
+        log.info("Hibernate loaded successfully!");
     }
 
     /**
@@ -65,7 +65,7 @@ public class HibernatePlusService {
 
         Properties properties = new Properties();
         ClassLoader classLoader = configuration.getClassLoader();
-        properties.load(classLoader.getResourceAsStream("/hibernate.properties"));
+        properties.load(classLoader.getResourceAsStream("/example/hibernate.properties"));
 
         ServiceRegistry serviceRegistry = new StandardServiceRegistryBuilder()
                 .applySettings(properties)
@@ -75,7 +75,7 @@ public class HibernatePlusService {
 
         configuration.setClassLoader(classLoader);
         extracted(configuration, sources);
-        log.info("Hibernate 加载成功!");
+        log.info("Hibernate loaded successfully!");
     }
 
     private static void extracted(Configuration configuration, MetadataSources sources) {
