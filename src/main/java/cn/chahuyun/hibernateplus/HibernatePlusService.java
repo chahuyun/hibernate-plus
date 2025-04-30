@@ -87,6 +87,10 @@ public class HibernatePlusService {
             sources.addAnnotatedClass(aClass);
         }
 
+        if (!configuration.getOtherEntityClasses().isEmpty()) {
+            configuration.getOtherEntityClasses().forEach(sources::addAnnotatedClass);
+        }
+
         Metadata metadata = sources.getMetadataBuilder().build();
         HibernateFactory factory = new HibernateFactory(metadata.getSessionFactoryBuilder().build());
         HibernateFactory.setFactory(factory);

@@ -72,6 +72,11 @@ public class Configuration {
      */
     private boolean isAutoReconnect = false;
 
+    /**
+     * 其他实体类
+     */
+    private Set<Class<?>> otherEntityClasses;
+
 
     public Configuration(Class<?> baseClass) {
         setBaseClass(baseClass);
@@ -300,4 +305,29 @@ public class Configuration {
         }
     }
 
+    /**
+     * 添加其他实体类
+     *
+     * @param classes 其他实体类
+     */
+    public void addOtherClass(Class<?>... classes) {
+        if (otherEntityClasses == null) {
+            otherEntityClasses = new HashSet<>();
+        }
+        for (Class<?> clazz : classes) {
+            if (clazz.isAnnotationPresent(jakarta.persistence.Entity.class)) {
+                otherEntityClasses.add(clazz);
+            }
+        }
+    }
+
+
+    /**
+     * 获取其他实体类
+     *
+     * @return 其他实体类
+     */
+    Set<Class<?>> getOtherEntityClasses() {
+        return otherEntityClasses == null ? Set.of() : otherEntityClasses;
+    }
 }
