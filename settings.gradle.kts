@@ -1,2 +1,1 @@
-rootProject.name = "hibrnate-plus"
-
+rootProject.name = "hibernate-plus"

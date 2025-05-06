@@ -20,7 +20,7 @@ import java.util.Set;
 
 /**
  * @author Moyuyanli
- * @date 2024/7/10 15:54
+ * @since 2024/7/10 15:54
  */
 @Slf4j
 public class HibernatePlusService {

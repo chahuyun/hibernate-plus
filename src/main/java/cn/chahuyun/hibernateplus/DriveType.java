@@ -4,7 +4,7 @@ import lombok.Getter;
 
 /**
  * @author Moyuyanli
- * @date 2024/7/18 14:12
+ * @since 2024/7/18 14:12
  */
 @Getter
 public enum DriveType {

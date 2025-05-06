@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
  * hibernate工厂
  *
  * @author Moyuyanli
- * @date 2024/7/18 10:42
+ * @since 2024/7/18 10:42
  */
 @Slf4j
 public class HibernateFactory {

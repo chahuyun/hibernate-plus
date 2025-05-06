@@ -1,16 +1,24 @@
+import com.vanniktech.maven.publish.SonatypeHost
+
 plugins {
-    id("org.jetbrains.kotlin.jvm") version "1.8.20"
+    id("org.jetbrains.kotlin.jvm") version "1.9.20"
     id("java")
 
-    id("me.him188.maven-central-publish") version "1.0.0-dev-3"
+    `java-library`
+    `maven-publish`
+    id("com.vanniktech.maven.publish") version "0.31.0"
+    id("signing")
 }
 
 group = "cn.chahuyun"
 version = "1.0.17"
 
+
 repositories {
     mavenCentral()
+    maven { url = uri("https://plugins.gradle.org/m2/") }
 }
+
 
 dependencies {
     api("com.zaxxer:HikariCP:5.1.0")
@@ -33,28 +41,69 @@ dependencies {
     implementation("ch.qos.logback:logback-classic:1.5.6")
 
     //lombok
-    implementation("org.projectlombok:lombok:1.18.8")
-    annotationProcessor("org.projectlombok:lombok:1.18.8")
+    implementation("org.projectlombok:lombok:1.18.30")
+    annotationProcessor("org.projectlombok:lombok:1.18.30")
 
 }
 
+tasks.withType<Javadoc> {
+    options.encoding = "UTF-8"
+    (options as StandardJavadocDocletOptions).apply {
+        charSet("UTF-8") // 设置输出 HTML 字符集
+        encoding("UTF-8") // 显式指定输入编码
+        addStringOption("docencoding", "UTF-8") // 指定文档本身的编码
+
+        // 可选：关闭严格检查，避免非法HTML标签报错
+        addBooleanOption("Xdoclint:none", true)
+    }
+
+    // 如果你使用的是 Java 8+，可以加上以下选项：
+    options.source = "17" // 改为你实际使用的 JDK 版本
+}
 
 
-mavenCentralPublish {
-    useCentralS01()
+mavenPublishing {
+    coordinates(group.toString(), project.name, version.toString())
 
-    licenseApacheV2()
+    //配置 POM 文件内容
+    pom {
+        name.set("hibernate-plus")
+        description.set("一个Hibernate 工具库，用户提供便捷的连接方式和简单的基本查询。")
+        inceptionYear.set("2024")
+        url.set("https://github.com/chahuyun/hibernate-plus")
 
-    singleDevGithubProject("chahuyun", "hibernate-plus")
-    developer("moyuyanli")
+        //开源许可
+        licenses {
+            license {
+                name.set("The Apache License, Version 2.0")
+                url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+                distribution.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+            }
+        }
+        //开发者信息
+        developers {
+            developer {
+                id.set("moyuyanli")
+                name.set("Moyu yanli")
+                url.set("https://github.com/Moyuyanli")
+            }
+        }
+        //源码仓库信息
+        scm {
+            url.set("https://github.com/chahuyun/hibernate-plus")
+            connection.set("scm:git:git://github.com/chahuyun/hibernate-plus.git")
+            developerConnection.set("scm:git:ssh://git@github.com/chahuyun/hibernate-plus.git")
+        }
+    }
 
-    // 设置 Publish 临时目录
-    workingDir = System.getenv("PUBLICATION_TEMP")?.let { file(it).resolve(projectName) }
-        ?: buildDir.resolve("publishing-tmp")
+//    publishToMavenCentral(SonatypeHost.DEFAULT)
+    // or when publishing to https://s01.oss.sonatype.org
+//    publishToMavenCentral(SonatypeHost.S01)
+    // or when publishing to https://central.sonatype.com/
+    // 自动发布
+    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL, automaticRelease = true)
+    //等价
+//    publishToMavenCentral()
 
-    // 设置额外上传内容
-//    publication {
-//        artifact(tasks["jar"])
-//    }
-
+    signAllPublications()
 }
