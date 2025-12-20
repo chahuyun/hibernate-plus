@@ -1,8 +1,6 @@
 package cc.cb.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
-import lombok.experimental.Accessors;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -13,14 +11,8 @@ import java.util.Date;
  * @author Moyuyanli
  * @since 2022/12/5 17:01
  */
-@Getter
-@Setter
 @Entity(name = "TitleInfo")
 @Table
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-@Accessors(chain = true)
 public class TitleInfo implements Serializable {
 
     @Id

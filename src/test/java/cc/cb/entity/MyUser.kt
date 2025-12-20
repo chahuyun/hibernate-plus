@@ -1,60 +1,25 @@
-package cc.cb.entity;
+package cc.cb.entity
 
-import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import jakarta.persistence.*
 
 /**
  * @author Moyuyanli
- * @since 2024/7/21 13:55
+ * @Date 2024/7/21 13:55
  */
 @Entity
 @Table
-public class MyUser {
+class MyUser {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    var id: Int? = null
 
-    private String name;
+    var name: String? = null
 
-    private Integer sex;
+    var sex: Int? = null
 
-
-    public Integer getId() {
-        return id;
+    override fun toString(): String {
+        return "MyUser(id=$id, name=$name, sex=$sex)"
     }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public Integer getSex() {
-        return sex;
-    }
-
-    public void setSex(Integer sex) {
-        this.sex = sex;
-    }
-
-    @Override
-    public String toString() {
-        return "MyUser{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", sex=" + sex +
-                '}';
-    }
-
-
-
-
 }
+

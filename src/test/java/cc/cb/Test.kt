@@ -1,78 +1,84 @@
-package cc.cb;
+package cc.cb
 
-import cc.cb.entity.MyUser;
-import cc.cb.entity.TitleInfo;
-import cn.chahuyun.hibernateplus.Configuration;
-import cn.chahuyun.hibernateplus.DriveType;
-import cn.chahuyun.hibernateplus.HibernateFactory;
-import cn.chahuyun.hibernateplus.HibernatePlusService;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import cc.cb.entity.MyUser
+import cn.chahuyun.hibernateplus.DriveType
+import cn.chahuyun.hibernateplus.HibernateFactory
+import cn.chahuyun.hibernateplus.HibernatePlusService
+import org.slf4j.LoggerFactory
 
 /**
+ * v2.0.0 测试示例
+ * 演示新版本特性：HSQLDB、Kotlin 友好 API、HQL/SQL 查询
+ *
  * @author Moyuyanli
- * @since 2024/7/20 18:03
  */
+object Test {
 
-public class Test {
+    private val log = LoggerFactory.getLogger(Test::class.java)
 
-    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(Test.class);
+    @JvmStatic
+    fun main(args: Array<String>) {
+        log.info("开始 v2.0.0 新特性测试...")
 
-    public static void main(String[] args) {
-
-        Configuration configuration = HibernatePlusService.createConfiguration(Test.class);
-
-        configuration.setDriveType(DriveType.MYSQL);
-        configuration.setAddress("localhost:3306/test");
-        configuration.setAutoReconnect(true);
-        configuration.setUser("root");
-        configuration.setPassword("Zz123456");
-        configuration.setShowSql(true);
-        configuration.setFormatSql(true);
-
-        configuration.setPackageName("cc.cb.entity");
-
-        HibernatePlusService.loadingService(configuration);
-
-        List<MyUser> myUsers = HibernateFactory.selectList(MyUser.class);
-
-        log.info("==========list=============");
-
-        for (MyUser myUser : myUsers) {
-            log.info(myUser.toString());
+        // 1. 初始化配置 - 使用 2.0.0 新增的 HSQLDB (无需安装，打包即用)
+        val configuration = HibernatePlusService.createConfiguration(Test::class.java).apply {
+            driveType = DriveType.HSQLDB
+            address = "db/test_v2" // 数据库文件路径
+            user = "SA"
+            password = ""
         }
 
-        log.info("===========================");
+        // 2. 启动服务
+        HibernatePlusService.loadingService(configuration)
 
-        MyUser myUser = new MyUser();
-        myUser.setName("张");
-        myUser.setSex(123);
+        log.info("数据库初始化完成，开始执行操作...")
 
-        Integer id = HibernateFactory.merge(myUser).getId();
-
-        log.info("==========one=============");
-
-        MyUser selectOne = HibernateFactory.selectOne(MyUser.class, id);
-
-        log.info(selectOne.toString());
-
-        log.info("===========================");
-
-
-        log.info("==========one=============");
-        Map<String, Object> params = new HashMap<>();
-        params.put("code", "monopoly-0");
-        params.put("userId", 123456);
-        TitleInfo titleInfo = HibernateFactory.selectOne(TitleInfo.class, params);
-        if (titleInfo != null) {
-            log.info(titleInfo.toString());
-        } else {
-            log.info("titleInfo is null");
+        // 3. 插入数据
+        val user1 = MyUser().apply {
+            name = "Moyu"
+            sex = 1
         }
-        log.info("===========================");
+        val user2 = MyUser().apply {
+            name = "HibernatePlus"
+            sex = 2
+        }
 
+        HibernateFactory.merge(user1)
+        HibernateFactory.merge(user2)
+
+        // 4. 使用 Kotlin 友好的 Reified API 查询列表
+        log.info("--- 测试 selectList<T>() ---")
+        val allUsers = HibernateFactory.selectList<MyUser>()
+        allUsers.forEach { log.info("查询到用户: $it") }
+
+        // 5. 使用 Kotlin 友好的 Reified API 查询单条数据
+        log.info("--- 测试 selectOne<T>(field, value) ---")
+        val moyu = HibernateFactory.selectOne<MyUser>("name", "Moyu")
+        log.info("通过字段查询: $moyu")
+
+        // 6. 测试 HQL 查询 (v2.0.0 新增)
+        log.info("--- 测试 selectOneByHql<T>() ---")
+        val hqlUser = HibernateFactory.selectOneByHql<MyUser>(
+            "from MyUser where sex = :sex",
+            mapOf("sex" to 2)
+        )
+        log.info("HQL 查询结果: $hqlUser")
+
+        // 7. 测试原生 SQL 查询 (v2.0.0 新增)
+        log.info("--- 测试 selectListBySql<T>() ---")
+        // 注意：SQL 语法需与当前使用的数据库（HSQLDB）匹配
+        val sqlUsers = HibernateFactory.selectListBySql<MyUser>(
+            "SELECT * FROM MyUser WHERE name LIKE :name",
+            mapOf("name" to "%Moyu%")
+        )
+        sqlUsers.forEach { log.info("SQL 查询结果: $it") }
+
+        // 8. 测试删除
+        if (moyu != null) {
+            val deleted = HibernateFactory.delete(moyu)
+            log.info("删除用户 ${moyu.name}: $deleted")
+        }
+
+        log.info("v2.0.0 所有特性测试完成！")
     }
-
 }
