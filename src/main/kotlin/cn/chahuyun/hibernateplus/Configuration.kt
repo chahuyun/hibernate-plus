@@ -41,6 +41,11 @@ class Configuration @JvmOverloads constructor(
     var packageName: String? = null
 
     /**
+     * 额外实体类
+     */
+    val extraEntity: MutableList<Class<Any>> = mutableListOf()
+
+    /**
      * 类加载器
      */
     var classLoader: ClassLoader? = baseClass?.classLoader
@@ -77,7 +82,10 @@ class Configuration @JvmOverloads constructor(
 
         properties.setProperty("hibernate.connection.url", url)
         properties.setProperty("hibernate.connection.driver_class", currentDriveType.driverClass)
-        properties.setProperty("hibernate.connection.provider_class", "org.hibernate.hikaricp.internal.HikariCPConnectionProvider")
+        properties.setProperty(
+            "hibernate.connection.provider_class",
+            "org.hibernate.hikaricp.internal.HikariCPConnectionProvider"
+        )
         properties.setProperty("hibernate.hbm2ddl.auto", "update")
         properties.setProperty("hibernate-connection-autocommit", "true")
 
@@ -86,6 +94,7 @@ class Configuration @JvmOverloads constructor(
             DriveType.H2 -> {
                 properties.setProperty("hibernate.connection.isolation", "1")
             }
+
             DriveType.SQLITE -> {
                 // SQLite 属于社区驱动，建议显式指定
                 properties.setProperty("hibernate.dialect", "org.hibernate.community.dialect.SQLiteDialect")
@@ -97,16 +106,18 @@ class Configuration @JvmOverloads constructor(
                 if (user == null) properties.setProperty("hibernate.connection.username", "")
                 if (password == null) properties.setProperty("hibernate.connection.password", "")
                 properties.setProperty("hibernate.current_session_context_class", "thread")
-                
+
                 // 开启 SQLite WAL 模式以支持更好的多线程并发
                 properties.setProperty("hibernate.hikari.dataSource.journal_mode", "WAL")
                 properties.setProperty("hibernate.hikari.dataSource.synchronous", "NORMAL")
             }
+
             DriveType.HSQLDB -> {
                 properties.setProperty("hibernate.connection.username", user ?: "SA")
                 properties.setProperty("hibernate.connection.password", password ?: "")
                 properties.setProperty("hibernate.connection.isolation", "1")
             }
+
             DriveType.MYSQL -> {
                 properties.setProperty("hibernate.connection.CharSet", "utf8mb4")
                 properties.setProperty("hibernate.connection.useUnicode", "true")
@@ -115,12 +126,14 @@ class Configuration @JvmOverloads constructor(
                 properties.setProperty("hibernate.connection.isolation", "1")
                 properties.setProperty("hibernate.autoReconnect", "true")
             }
+
             DriveType.MARIADB -> {
                 properties.setProperty("hibernate.connection.username", user ?: "")
                 properties.setProperty("hibernate.connection.password", password ?: "")
                 properties.setProperty("hibernate.connection.isolation", "1")
                 properties.setProperty("hibernate.autoReconnect", "true")
             }
+
             DriveType.DUCKDB -> {
                 // DuckDB 目前仍建议显式指定方言
                 properties.setProperty("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect")
