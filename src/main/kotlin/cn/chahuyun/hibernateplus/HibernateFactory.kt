@@ -1,5 +1,8 @@
+@file:Suppress("SqlSourceToSinkFlow", "unused")
+
 package cn.chahuyun.hibernateplus
 
+import cn.chahuyun.hibernateplus.HibernateFactory.Companion.selectList
 import org.hibernate.Session
 import org.hibernate.SessionFactory
 import org.hibernate.query.criteria.HibernateCriteriaBuilder
@@ -19,14 +22,14 @@ class HibernateFactory internal constructor(private val sessionFactory: SessionF
         private val log = LoggerFactory.getLogger(HibernateFactory::class.java)
 
         @Volatile
-        private var factory: HibernateFactory? = null
+        private lateinit var factory: HibernateFactory
 
         /**
          * 获取 SessionFactory
          */
         @JvmStatic
-        fun getSessionFactory(): SessionFactory? {
-            return factory?.sessionFactory
+        fun getSessionFactory(): SessionFactory {
+            return factory.sessionFactory
         }
 
         /**
@@ -39,7 +42,7 @@ class HibernateFactory internal constructor(private val sessionFactory: SessionF
          */
         @JvmStatic
         fun <T : Any> selectOne(tClass: Class<T>, key: Any): T? {
-            return factory?.sessionFactory?.fromSession { session: Session -> session.find(tClass, key) }
+            return factory.sessionFactory.fromSession { session: Session -> session.find(tClass, key) }
         }
 
         /**
@@ -59,12 +62,12 @@ class HibernateFactory internal constructor(private val sessionFactory: SessionF
         @JvmStatic
         @Suppress("UNCHECKED_CAST")
         fun <T : Any> selectOne(tClass: Class<T>, field: String, value: Any): T? {
-            return factory?.sessionFactory?.fromSession { session: Session ->
+            return factory.sessionFactory.fromSession { session: Session ->
                 session.createQuery("from ${tClass.simpleName} where $field = :value", tClass)
                     .setParameter("value", value)
                     .setMaxResults(1)
                     .resultList
-                    .firstOrNull() as T?
+                    .firstOrNull()
             }
         }
 
@@ -91,12 +94,12 @@ class HibernateFactory internal constructor(private val sessionFactory: SessionF
             if (params.isEmpty()) {
                 return null
             }
-            return factory?.sessionFactory?.fromSession { session: Session ->
+            return factory.sessionFactory.fromSession { session: Session ->
                 val query = getQuery(tClass, params, session)
                 session.createQuery(query)
                     .setMaxResults(1)
                     .resultList
-                    .firstOrNull() as T?
+                    .firstOrNull()
             }
         }
 
@@ -111,12 +114,12 @@ class HibernateFactory internal constructor(private val sessionFactory: SessionF
         @JvmStatic
         @Suppress("UNCHECKED_CAST")
         fun <T : Any> selectOneByHql(tClass: Class<T>, hql: String, params: Map<String, Any> = emptyMap()): T? {
-            return factory?.sessionFactory?.fromSession { session ->
+            return factory.sessionFactory.fromSession { session ->
                 val query = session.createQuery(hql, tClass)
                 params.forEach { (k, v) -> query.setParameter(k, v) }
                 query.setMaxResults(1)
                     .resultList
-                    .firstOrNull() as T?
+                    .firstOrNull()
             }
         }
 
@@ -130,14 +133,14 @@ class HibernateFactory internal constructor(private val sessionFactory: SessionF
          * 通过 SQL 查询单一对象
          */
         @JvmStatic
-        @Suppress("UNCHECKED_CAST")
+        @Suppress("UNCHECKED_CAST", "USELESS_CAST")
         fun <T : Any> selectOneBySql(tClass: Class<T>, sql: String, params: Map<String, Any> = emptyMap()): T? {
-            return factory?.sessionFactory?.fromSession { session ->
+            return factory.sessionFactory.fromSession { session ->
                 val query = session.createNativeQuery(sql, tClass)
                 params.forEach { (k, v) -> query.setParameter(k, v) }
                 query.setMaxResults(1)
                     .resultList
-                    .firstOrNull() as T?
+                    .firstOrNull() as? T?
             }
         }
 
@@ -161,7 +164,7 @@ class HibernateFactory internal constructor(private val sessionFactory: SessionF
             if (params.isEmpty()) {
                 return selectList(tClass)
             }
-            return factory?.sessionFactory?.fromSession { session: Session ->
+            return factory.sessionFactory.fromSession { session: Session ->
                 val query = getQuery(tClass, params, session)
                 session.createQuery(query).resultList as List<T>
             } ?: emptyList()
@@ -182,7 +185,7 @@ class HibernateFactory internal constructor(private val sessionFactory: SessionF
         @JvmStatic
         @Suppress("UNCHECKED_CAST")
         fun <T : Any> selectList(tClass: Class<T>): List<T> {
-            return factory?.sessionFactory?.fromSession { session: Session ->
+            return factory.sessionFactory.fromSession { session: Session ->
                 val query = getQuery(tClass, emptyMap(), session)
                 session.createQuery(query).resultList as List<T>
             } ?: emptyList()
@@ -208,7 +211,7 @@ class HibernateFactory internal constructor(private val sessionFactory: SessionF
             if (key == null || param == null) {
                 return emptyList()
             }
-            return factory?.sessionFactory?.fromSession { session: Session ->
+            return factory.sessionFactory.fromSession { session: Session ->
                 val builder: HibernateCriteriaBuilder = session.criteriaBuilder
                 val query: JpaCriteriaQuery<T> = builder.createQuery(tClass)
                 val from: JpaRoot<T> = query.from(tClass)
@@ -230,7 +233,7 @@ class HibernateFactory internal constructor(private val sessionFactory: SessionF
         @JvmStatic
         @Suppress("UNCHECKED_CAST")
         fun <T : Any> selectListByHql(tClass: Class<T>, hql: String, params: Map<String, Any> = emptyMap()): List<T> {
-            return factory?.sessionFactory?.fromSession { session ->
+            return factory.sessionFactory.fromSession { session ->
                 val query = session.createQuery(hql, tClass)
                 params.forEach { (k, v) -> query.setParameter(k, v) }
                 query.resultList as List<T>
@@ -249,7 +252,7 @@ class HibernateFactory internal constructor(private val sessionFactory: SessionF
         @JvmStatic
         @Suppress("UNCHECKED_CAST")
         fun <T : Any> selectListBySql(tClass: Class<T>, sql: String, params: Map<String, Any> = emptyMap()): List<T> {
-            return factory?.sessionFactory?.fromSession { session ->
+            return factory.sessionFactory.fromSession { session ->
                 val query = session.createNativeQuery(sql, tClass)
                 params.forEach { (k, v) -> query.setParameter(k, v) }
                 query.resultList as List<T>
@@ -271,11 +274,8 @@ class HibernateFactory internal constructor(private val sessionFactory: SessionF
          * @return 新对象
          */
         @JvmStatic
-        fun <T : Any> merge(`object`: T?): T? {
-            if (`object` == null) {
-                return null
-            }
-            return factory?.sessionFactory?.fromTransaction { session: Session -> session.merge(`object`) }
+        fun <T : Any> merge(`object`: T): T {
+            return factory.sessionFactory.fromTransaction { session: Session -> session.merge(`object`) }
         }
 
         /**
@@ -289,7 +289,7 @@ class HibernateFactory internal constructor(private val sessionFactory: SessionF
             if (`object` == null) {
                 return false
             }
-            return factory?.sessionFactory?.fromTransaction { session: Session ->
+            return factory.sessionFactory.fromTransaction { session: Session ->
                 try {
                     session.remove(`object`)
                     true
