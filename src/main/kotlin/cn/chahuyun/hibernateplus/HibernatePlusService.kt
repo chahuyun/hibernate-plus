@@ -84,6 +84,10 @@ object HibernatePlusService {
             sources.addAnnotatedClass(aClass)
         }
 
+        if (configuration.extraEntity.isNotEmpty()) {
+            configuration.extraEntity.forEach { sources.addAnnotatedClass(it) }
+        }
+
         val metadata = sources.metadataBuilder.build()
         val sessionFactory = metadata.sessionFactoryBuilder.build()
         val factory = HibernateFactory(sessionFactory)
