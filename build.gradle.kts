@@ -1,6 +1,3 @@
-import org.jetbrains.dokka.gradle.DokkaTask
-import java.net.URL
-
 plugins {
     id("org.jetbrains.kotlin.jvm") version "1.9.20"
     id("java-library")
@@ -10,7 +7,7 @@ plugins {
 }
 
 group = "cn.chahuyun"
-version = "2.0.0"
+version = "2.0.1"
 
 dependencies {
     api("com.zaxxer:HikariCP:5.1.0")
@@ -30,7 +27,7 @@ dependencies {
     api("org.hibernate.orm:hibernate-community-dialects:6.5.2.Final")
 
     // logback 日志基本
-    implementation("ch.qos.logback:logback-classic:1.5.6")
+    testImplementation("ch.qos.logback:logback-classic:1.5.6")
 
     testImplementation("org.jetbrains.kotlin:kotlin-test")
 }
@@ -59,7 +56,7 @@ publishing {
     publications {
         create<MavenPublication>("mavenJava") {
             from(components["java"])
-            
+
             // 替换默认的空 javadoc 为 Dokka 生成的内容
             artifact(dokkaJavadocJar)
 
@@ -101,7 +98,7 @@ publishing {
 signing {
     // 如果你想通过命令行手动签名，实际上可以不配置这个插件
     // 但如果你想在执行 publish 时自动调用本地 gpg 命令，可以如下配置：
-     useGpgCmd()
+    useGpgCmd()
     sign(publishing.publications["mavenJava"])
 }
 
