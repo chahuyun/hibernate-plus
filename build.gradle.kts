@@ -7,14 +7,14 @@ plugins {
 }
 
 group = "cn.chahuyun"
-version = "2.0.1"
+version = "2.0.2"
 
 dependencies {
     api("com.zaxxer:HikariCP:5.1.0")
     api("org.slf4j:slf4j-api:2.0.9")
     api("org.xerial:sqlite-jdbc:3.45.3.0")
     api("org.hsqldb:hsqldb:2.7.2")
-    api("com.mysql:mysql-connector-j:8.3.0")
+    api("com.mysql:mysql-connector-j:9.3.0")
     api("org.mariadb.jdbc:mariadb-java-client:3.3.3")
     api("org.duckdb:duckdb_jdbc:0.10.0")
     api("com.h2database:h2:2.2.224")
@@ -27,7 +27,7 @@ dependencies {
     api("org.hibernate.orm:hibernate-community-dialects:6.5.2.Final")
 
     // logback 日志基本
-    testImplementation("ch.qos.logback:logback-classic:1.5.6")
+    testImplementation("ch.qos.logback:logback-classic:1.5.13")
 
     testImplementation("org.jetbrains.kotlin:kotlin-test")
 }

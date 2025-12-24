@@ -12,7 +12,7 @@ class Configuration @JvmOverloads constructor(
     /**
      * 实现本类
      */
-    var baseClass: Class<*>? = null
+    var baseClass: Class<*>? = null,
 ) {
 
     /**
@@ -43,7 +43,7 @@ class Configuration @JvmOverloads constructor(
     /**
      * 额外实体类
      */
-    val extraEntity: MutableList<Class<Any>> = mutableListOf()
+    val extraEntity: MutableList<Class<*>> = mutableListOf()
 
     /**
      * 类加载器
@@ -62,6 +62,16 @@ class Configuration @JvmOverloads constructor(
             }
         }
     }
+
+    /**
+     * 添加额外的实体类型到集合中
+     *
+     * @param clazz 要添加的实体类类型
+     */
+    fun addExtraEntity(clazz: Class<*>) {
+        extraEntity += clazz;
+    }
+
 
     /**
      * 转换为 properties
