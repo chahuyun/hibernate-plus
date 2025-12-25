@@ -8,6 +8,7 @@ import org.hibernate.SessionFactory
 import org.hibernate.query.criteria.HibernateCriteriaBuilder
 import org.hibernate.query.criteria.JpaCriteriaQuery
 import org.hibernate.query.criteria.JpaRoot
+import org.intellij.lang.annotations.Language
 import org.slf4j.LoggerFactory
 
 /**
@@ -71,11 +72,14 @@ class HibernateFactory internal constructor(private val sessionFactory: SessionF
          * @return 对象 或 null
          */
         @JvmStatic
-        @Suppress("UNCHECKED_CAST")
         fun <T : Any> selectOne(tClass: Class<T>, field: String, value: Any): T? {
             return factory.sessionFactory.fromSession { session: Session ->
-                session.createQuery("from ${tClass.simpleName} where $field = :value", tClass)
-                    .setParameter("value", value)
+                val builder = session.criteriaBuilder
+                val query = builder.createQuery(tClass)
+                val from = query.from(tClass)
+                query.select(from).where(builder.equal(from.get<Any>(field), value))
+
+                session.createQuery(query)
                     .setMaxResults(1)
                     .resultList
                     .firstOrNull()
@@ -124,7 +128,11 @@ class HibernateFactory internal constructor(private val sessionFactory: SessionF
          */
         @JvmStatic
         @Suppress("UNCHECKED_CAST")
-        fun <T : Any> selectOneByHql(tClass: Class<T>, hql: String, params: Map<String, Any?> = emptyMap()): T? {
+        fun <T : Any> selectOneByHql(
+            tClass: Class<T>,
+            @Language("HQL") hql: String,
+            params: Map<String, Any?> = emptyMap()
+        ): T? {
             return factory.sessionFactory.fromSession { session ->
                 val query = session.createQuery(hql, tClass)
                 params.forEach { (k, v) -> query.setParameter(k, v) }
@@ -137,7 +145,10 @@ class HibernateFactory internal constructor(private val sessionFactory: SessionF
         /**
          * Kotlin 友好的 HQL 查询单一对象
          */
-        inline fun <reified T : Any> selectOneByHql(hql: String, params: Map<String, Any?> = emptyMap()): T? =
+        inline fun <reified T : Any> selectOneByHql(
+            @Language("HQL") hql: String,
+            params: Map<String, Any?> = emptyMap()
+        ): T? =
             selectOneByHql(T::class.java, hql, params)
 
         /**
@@ -145,7 +156,11 @@ class HibernateFactory internal constructor(private val sessionFactory: SessionF
          */
         @JvmStatic
         @Suppress("UNCHECKED_CAST", "USELESS_CAST")
-        fun <T : Any> selectOneBySql(tClass: Class<T>, sql: String, params: Map<String, Any?> = emptyMap()): T? {
+        fun <T : Any> selectOneBySql(
+            tClass: Class<T>,
+            @Language("SQL") sql: String,
+            params: Map<String, Any?> = emptyMap()
+        ): T? {
             return factory.sessionFactory.fromSession { session ->
                 val query = session.createNativeQuery(sql, tClass)
                 params.forEach { (k, v) -> query.setParameter(k, v) }
@@ -158,7 +173,10 @@ class HibernateFactory internal constructor(private val sessionFactory: SessionF
         /**
          * Kotlin 友好的 SQL 查询单一对象
          */
-        inline fun <reified T : Any> selectOneBySql(sql: String, params: Map<String, Any?> = emptyMap()): T? =
+        inline fun <reified T : Any> selectOneBySql(
+            @Language("SQL") sql: String,
+            params: Map<String, Any?> = emptyMap()
+        ): T? =
             selectOneBySql(T::class.java, sql, params)
 
         /**

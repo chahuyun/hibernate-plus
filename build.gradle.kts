@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "cn.chahuyun"
-version = "2.0.3"
+version = "2.0.4"
 
 dependencies {
     api("com.zaxxer:HikariCP:5.1.0")
