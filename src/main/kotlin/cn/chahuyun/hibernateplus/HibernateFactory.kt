@@ -10,6 +10,7 @@ import org.hibernate.query.criteria.JpaCriteriaQuery
 import org.hibernate.query.criteria.JpaRoot
 import org.intellij.lang.annotations.Language
 import org.slf4j.LoggerFactory
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * hibernate工厂
@@ -22,15 +23,34 @@ class HibernateFactory internal constructor(private val sessionFactory: SessionF
     companion object {
         private val log = LoggerFactory.getLogger(HibernateFactory::class.java)
 
-        @Volatile
-        private lateinit var factory: HibernateFactory
+        private val factories = ConcurrentHashMap<ClassLoader, HibernateFactory>()
+
+        /**
+         * 获取当前线程上下文对应的 HibernateFactory
+         */
+        private fun getFactory(): HibernateFactory {
+            val cl = Thread.currentThread().contextClassLoader
+            if (cl != null) {
+                factories[cl]?.let { return it }
+            }
+
+            // 如果上下文找不到，且当前只注册了一个工厂，则返回那一个（兼容非隔离环境）
+            if (factories.size == 1) {
+                return factories.values.first()
+            }
+
+            throw IllegalStateException(
+                "HibernatePlus 尚未在当前插件环境中初始化。" +
+                        "当前 ClassLoader: $cl, 已注册: ${factories.keys}"
+            )
+        }
 
         /**
          * 获取 SessionFactory
          */
         @JvmStatic
         fun getSessionFactory(): SessionFactory {
-            return factory.sessionFactory
+            return getFactory().sessionFactory
         }
 
         /**
@@ -54,7 +74,7 @@ class HibernateFactory internal constructor(private val sessionFactory: SessionF
          */
         @JvmStatic
         fun <T : Any> selectOneById(tClass: Class<T>, key: Any): T? {
-            return factory.sessionFactory.fromSession { session: Session -> session.find(tClass, key) }
+            return getSessionFactory().fromSession { session: Session -> session.find(tClass, key) }
         }
 
         /**
@@ -73,16 +93,13 @@ class HibernateFactory internal constructor(private val sessionFactory: SessionF
          */
         @JvmStatic
         fun <T : Any> selectOne(tClass: Class<T>, field: String, value: Any): T? {
-            return factory.sessionFactory.fromSession { session: Session ->
+            return getSessionFactory().fromSession { session: Session ->
                 val builder = session.criteriaBuilder
                 val query = builder.createQuery(tClass)
                 val from = query.from(tClass)
                 query.select(from).where(builder.equal(from.get<Any>(field), value))
 
-                session.createQuery(query)
-                    .setMaxResults(1)
-                    .resultList
-                    .firstOrNull()
+                session.createQuery(query).setMaxResults(1).resultList.firstOrNull()
             }
         }
 
@@ -109,12 +126,9 @@ class HibernateFactory internal constructor(private val sessionFactory: SessionF
             if (params.isEmpty()) {
                 return null
             }
-            return factory.sessionFactory.fromSession { session: Session ->
+            return getSessionFactory().fromSession { session: Session ->
                 val query = getQuery(tClass, params, session)
-                session.createQuery(query)
-                    .setMaxResults(1)
-                    .resultList
-                    .firstOrNull()
+                session.createQuery(query).setMaxResults(1).resultList.firstOrNull()
             }
         }
 
@@ -129,16 +143,15 @@ class HibernateFactory internal constructor(private val sessionFactory: SessionF
         @JvmStatic
         @Suppress("UNCHECKED_CAST")
         fun <T : Any> selectOneByHql(
-            tClass: Class<T>,
-            @Language("HQL") hql: String,
-            params: Map<String, Any?> = emptyMap()
+            tClass: Class<T>, @Language("HQL") hql: String, params: Map<String, Any?> = emptyMap()
         ): T? {
-            return factory.sessionFactory.fromSession { session ->
+            require(hql.isNotBlank()) { "HQL cannot be blank" }
+            require(tClass != Any::class.java) { "Invalid class type" }
+
+            return getSessionFactory().fromSession { session ->
                 val query = session.createQuery(hql, tClass)
                 params.forEach { (k, v) -> query.setParameter(k, v) }
-                query.setMaxResults(1)
-                    .resultList
-                    .firstOrNull()
+                query.setMaxResults(1).resultList.firstOrNull()
             }
         }
 
@@ -146,10 +159,8 @@ class HibernateFactory internal constructor(private val sessionFactory: SessionF
          * Kotlin 友好的 HQL 查询单一对象
          */
         inline fun <reified T : Any> selectOneByHql(
-            @Language("HQL") hql: String,
-            params: Map<String, Any?> = emptyMap()
-        ): T? =
-            selectOneByHql(T::class.java, hql, params)
+            @Language("HQL") hql: String, params: Map<String, Any?> = emptyMap()
+        ): T? = selectOneByHql(T::class.java, hql, params)
 
         /**
          * 通过 SQL 查询单一对象
@@ -157,16 +168,15 @@ class HibernateFactory internal constructor(private val sessionFactory: SessionF
         @JvmStatic
         @Suppress("UNCHECKED_CAST", "USELESS_CAST")
         fun <T : Any> selectOneBySql(
-            tClass: Class<T>,
-            @Language("SQL") sql: String,
-            params: Map<String, Any?> = emptyMap()
+            tClass: Class<T>, @Language("SQL") sql: String, params: Map<String, Any?> = emptyMap()
         ): T? {
-            return factory.sessionFactory.fromSession { session ->
+            require(sql.isNotBlank()) { "SQL cannot be blank" }
+            require(tClass != Any::class.java) { "Invalid class type" }
+
+            return getSessionFactory().fromSession { session ->
                 val query = session.createNativeQuery(sql, tClass)
                 params.forEach { (k, v) -> query.setParameter(k, v) }
-                query.setMaxResults(1)
-                    .resultList
-                    .firstOrNull() as? T?
+                query.setMaxResults(1).resultList.firstOrNull() as? T?
             }
         }
 
@@ -174,10 +184,8 @@ class HibernateFactory internal constructor(private val sessionFactory: SessionF
          * Kotlin 友好的 SQL 查询单一对象
          */
         inline fun <reified T : Any> selectOneBySql(
-            @Language("SQL") sql: String,
-            params: Map<String, Any?> = emptyMap()
-        ): T? =
-            selectOneBySql(T::class.java, sql, params)
+            @Language("SQL") sql: String, params: Map<String, Any?> = emptyMap()
+        ): T? = selectOneBySql(T::class.java, sql, params)
 
         /**
          * 查询集合
@@ -193,7 +201,7 @@ class HibernateFactory internal constructor(private val sessionFactory: SessionF
             if (params.isEmpty()) {
                 return selectList(tClass)
             }
-            return factory.sessionFactory.fromSession { session: Session ->
+            return getSessionFactory().fromSession { session: Session ->
                 val query = getQuery(tClass, params, session)
                 session.createQuery(query).resultList as List<T>
             } ?: emptyList()
@@ -214,7 +222,7 @@ class HibernateFactory internal constructor(private val sessionFactory: SessionF
         @JvmStatic
         @Suppress("UNCHECKED_CAST")
         fun <T : Any> selectList(tClass: Class<T>): List<T> {
-            return factory.sessionFactory.fromSession { session: Session ->
+            return getSessionFactory().fromSession { session: Session ->
                 val query = getQuery(tClass, emptyMap(), session)
                 session.createQuery(query).resultList as List<T>
             } ?: emptyList()
@@ -240,7 +248,7 @@ class HibernateFactory internal constructor(private val sessionFactory: SessionF
             if (key == null || param == null) {
                 return emptyList()
             }
-            return factory.sessionFactory.fromSession { session: Session ->
+            return getSessionFactory().fromSession { session: Session ->
                 val builder: HibernateCriteriaBuilder = session.criteriaBuilder
                 val query: JpaCriteriaQuery<T> = builder.createQuery(tClass)
                 val from: JpaRoot<T> = query.from(tClass)
@@ -262,7 +270,10 @@ class HibernateFactory internal constructor(private val sessionFactory: SessionF
         @JvmStatic
         @Suppress("UNCHECKED_CAST")
         fun <T : Any> selectListByHql(tClass: Class<T>, hql: String, params: Map<String, Any?> = emptyMap()): List<T> {
-            return factory.sessionFactory.fromSession { session ->
+            require(hql.isNotBlank()) { "HQL cannot be blank" }
+            require(tClass != Any::class.java) { "Invalid class type" }
+
+            return getSessionFactory().fromSession { session ->
                 val query = session.createQuery(hql, tClass)
                 params.forEach { (k, v) -> query.setParameter(k, v) }
                 query.resultList as List<T>
@@ -272,16 +283,22 @@ class HibernateFactory internal constructor(private val sessionFactory: SessionF
         /**
          * Kotlin 友好的 HQL 查询集合
          */
-        inline fun <reified T : Any> selectListByHql(hql: String, params: Map<String, Any?> = emptyMap()): List<T> =
-            selectListByHql(T::class.java, hql, params)
+        inline fun <reified T : Any> selectListByHql(
+            @Language("HQL") hql: String, params: Map<String, Any?> = emptyMap()
+        ): List<T> = selectListByHql(T::class.java, hql, params)
 
         /**
          * 通过 SQL 查询集合
          */
         @JvmStatic
         @Suppress("UNCHECKED_CAST")
-        fun <T : Any> selectListBySql(tClass: Class<T>, sql: String, params: Map<String, Any?> = emptyMap()): List<T> {
-            return factory.sessionFactory.fromSession { session ->
+        fun <T : Any> selectListBySql(
+            tClass: Class<T>, @Language("SQL") sql: String, params: Map<String, Any?> = emptyMap()
+        ): List<T> {
+            require(sql.isNotBlank()) { "SQL cannot be blank" }
+            require(tClass != Any::class.java) { "Invalid class type" }
+
+            return getSessionFactory().fromSession { session ->
                 val query = session.createNativeQuery(sql, tClass)
                 params.forEach { (k, v) -> query.setParameter(k, v) }
                 query.resultList as List<T>
@@ -291,8 +308,9 @@ class HibernateFactory internal constructor(private val sessionFactory: SessionF
         /**
          * Kotlin 友好的 SQL 查询集合
          */
-        inline fun <reified T : Any> selectListBySql(sql: String, params: Map<String, Any?> = emptyMap()): List<T> =
-            selectListBySql(T::class.java, sql, params)
+        inline fun <reified T : Any> selectListBySql(
+            @Language("SQL") sql: String, params: Map<String, Any?> = emptyMap()
+        ): List<T> = selectListBySql(T::class.java, sql, params)
 
         /**
          * 保存或更新
@@ -304,7 +322,7 @@ class HibernateFactory internal constructor(private val sessionFactory: SessionF
          */
         @JvmStatic
         fun <T : Any> merge(`object`: T): T {
-            return factory.sessionFactory.fromTransaction { session: Session -> session.merge(`object`) }
+            return getSessionFactory().fromTransaction { session: Session -> session.merge(`object`) }
         }
 
         /**
@@ -318,7 +336,7 @@ class HibernateFactory internal constructor(private val sessionFactory: SessionF
             if (`object` == null) {
                 return false
             }
-            return factory.sessionFactory.fromTransaction { session: Session ->
+            return getSessionFactory().fromTransaction { session: Session ->
                 try {
                     session.remove(`object`)
                     true
@@ -330,9 +348,7 @@ class HibernateFactory internal constructor(private val sessionFactory: SessionF
         }
 
         private fun <T : Any> getQuery(
-            tClass: Class<T>,
-            params: Map<String, Any?>,
-            session: Session
+            tClass: Class<T>, params: Map<String, Any?>, session: Session
         ): JpaCriteriaQuery<T> {
             val builder: HibernateCriteriaBuilder = session.criteriaBuilder
             val query: JpaCriteriaQuery<T> = builder.createQuery(tClass)
@@ -348,8 +364,8 @@ class HibernateFactory internal constructor(private val sessionFactory: SessionF
         }
 
         // Internal method for setting factory from the service
-        internal fun initFactory(factory: HibernateFactory) {
-            this.factory = factory
+        internal fun initFactory(classLoader: ClassLoader, factory: HibernateFactory) {
+            this.factories[classLoader] = factory
         }
     }
 }

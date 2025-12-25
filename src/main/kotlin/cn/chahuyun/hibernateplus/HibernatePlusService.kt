@@ -91,7 +91,8 @@ object HibernatePlusService {
         val metadata = sources.metadataBuilder.build()
         val sessionFactory = metadata.sessionFactoryBuilder.build()
         val factory = HibernateFactory(sessionFactory)
-        HibernateFactory.initFactory(factory)
+        val classLoader = configuration.classLoader ?: Thread.currentThread().contextClassLoader
+        HibernateFactory.initFactory(classLoader, factory)
     }
 
     private fun scanEntity(configuration: Configuration): Set<Class<*>> {
