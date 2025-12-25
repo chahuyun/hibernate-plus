@@ -1,3 +1,5 @@
+@file:Suppress("UnstableApiUsage")
+
 pluginManagement {
     repositories {
         maven("https://nexus.chahuyun.cn/repository/maven-public/")
