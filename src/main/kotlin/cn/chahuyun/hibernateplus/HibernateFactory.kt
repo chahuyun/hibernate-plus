@@ -33,6 +33,17 @@ class HibernateFactory internal constructor(private val sessionFactory: SessionF
         }
 
         /**
+         * 获取会话工厂
+         *
+         * @return 返回会话工厂实例
+         * @Deprecated 2.0.0 已弃用,请使用`getSessionFactory()`
+         */
+        @JvmStatic
+        @Deprecated("2.0.0 已弃用,请使用`getSessionFactory()`")
+        fun getSession() = getSessionFactory()
+
+
+        /**
          * 查询一个单一对象
          *
          * @param tClass 对象类
@@ -41,14 +52,14 @@ class HibernateFactory internal constructor(private val sessionFactory: SessionF
          * @return 对象 或 null
          */
         @JvmStatic
-        fun <T : Any> selectOne(tClass: Class<T>, key: Any): T? {
+        fun <T : Any> selectOneById(tClass: Class<T>, key: Any): T? {
             return factory.sessionFactory.fromSession { session: Session -> session.find(tClass, key) }
         }
 
         /**
          * Kotlin 友好的查询一个单一对象 (通过主键)
          */
-        inline fun <reified T : Any> selectOne(key: Any): T? = selectOne(T::class.java, key)
+        inline fun <reified T : Any> selectOneById(key: Any): T? = selectOneById(T::class.java, key)
 
         /**
          * 查询一个单一对象
@@ -90,7 +101,7 @@ class HibernateFactory internal constructor(private val sessionFactory: SessionF
          */
         @JvmStatic
         @Suppress("UNCHECKED_CAST")
-        fun <T : Any> selectOne(tClass: Class<T>, params: Map<String, Any>): T? {
+        fun <T : Any> selectOne(tClass: Class<T>, params: Map<String, Any?>): T? {
             if (params.isEmpty()) {
                 return null
             }
@@ -106,14 +117,14 @@ class HibernateFactory internal constructor(private val sessionFactory: SessionF
         /**
          * Kotlin 友好的查询一个单一对象 (通过参数 Map)
          */
-        inline fun <reified T : Any> selectOne(params: Map<String, Any>): T? = selectOne(T::class.java, params)
+        inline fun <reified T : Any> selectOne(params: Map<String, Any?>): T? = selectOne(T::class.java, params)
 
         /**
          * 通过 HQL 查询单一对象
          */
         @JvmStatic
         @Suppress("UNCHECKED_CAST")
-        fun <T : Any> selectOneByHql(tClass: Class<T>, hql: String, params: Map<String, Any> = emptyMap()): T? {
+        fun <T : Any> selectOneByHql(tClass: Class<T>, hql: String, params: Map<String, Any?> = emptyMap()): T? {
             return factory.sessionFactory.fromSession { session ->
                 val query = session.createQuery(hql, tClass)
                 params.forEach { (k, v) -> query.setParameter(k, v) }
@@ -126,7 +137,7 @@ class HibernateFactory internal constructor(private val sessionFactory: SessionF
         /**
          * Kotlin 友好的 HQL 查询单一对象
          */
-        inline fun <reified T : Any> selectOneByHql(hql: String, params: Map<String, Any> = emptyMap()): T? =
+        inline fun <reified T : Any> selectOneByHql(hql: String, params: Map<String, Any?> = emptyMap()): T? =
             selectOneByHql(T::class.java, hql, params)
 
         /**
@@ -134,7 +145,7 @@ class HibernateFactory internal constructor(private val sessionFactory: SessionF
          */
         @JvmStatic
         @Suppress("UNCHECKED_CAST", "USELESS_CAST")
-        fun <T : Any> selectOneBySql(tClass: Class<T>, sql: String, params: Map<String, Any> = emptyMap()): T? {
+        fun <T : Any> selectOneBySql(tClass: Class<T>, sql: String, params: Map<String, Any?> = emptyMap()): T? {
             return factory.sessionFactory.fromSession { session ->
                 val query = session.createNativeQuery(sql, tClass)
                 params.forEach { (k, v) -> query.setParameter(k, v) }
@@ -147,7 +158,7 @@ class HibernateFactory internal constructor(private val sessionFactory: SessionF
         /**
          * Kotlin 友好的 SQL 查询单一对象
          */
-        inline fun <reified T : Any> selectOneBySql(sql: String, params: Map<String, Any> = emptyMap()): T? =
+        inline fun <reified T : Any> selectOneBySql(sql: String, params: Map<String, Any?> = emptyMap()): T? =
             selectOneBySql(T::class.java, sql, params)
 
         /**
@@ -160,7 +171,7 @@ class HibernateFactory internal constructor(private val sessionFactory: SessionF
          */
         @JvmStatic
         @Suppress("UNCHECKED_CAST")
-        fun <T : Any> selectList(tClass: Class<T>, params: Map<String, Any>): List<T> {
+        fun <T : Any> selectList(tClass: Class<T>, params: Map<String, Any?>): List<T> {
             if (params.isEmpty()) {
                 return selectList(tClass)
             }
@@ -173,7 +184,7 @@ class HibernateFactory internal constructor(private val sessionFactory: SessionF
         /**
          * Kotlin 友好的查询集合 (通过参数 Map)
          */
-        inline fun <reified T : Any> selectList(params: Map<String, Any>): List<T> = selectList(T::class.java, params)
+        inline fun <reified T : Any> selectList(params: Map<String, Any?>): List<T> = selectList(T::class.java, params)
 
         /**
          * 查询集合
@@ -232,7 +243,7 @@ class HibernateFactory internal constructor(private val sessionFactory: SessionF
          */
         @JvmStatic
         @Suppress("UNCHECKED_CAST")
-        fun <T : Any> selectListByHql(tClass: Class<T>, hql: String, params: Map<String, Any> = emptyMap()): List<T> {
+        fun <T : Any> selectListByHql(tClass: Class<T>, hql: String, params: Map<String, Any?> = emptyMap()): List<T> {
             return factory.sessionFactory.fromSession { session ->
                 val query = session.createQuery(hql, tClass)
                 params.forEach { (k, v) -> query.setParameter(k, v) }
@@ -243,7 +254,7 @@ class HibernateFactory internal constructor(private val sessionFactory: SessionF
         /**
          * Kotlin 友好的 HQL 查询集合
          */
-        inline fun <reified T : Any> selectListByHql(hql: String, params: Map<String, Any> = emptyMap()): List<T> =
+        inline fun <reified T : Any> selectListByHql(hql: String, params: Map<String, Any?> = emptyMap()): List<T> =
             selectListByHql(T::class.java, hql, params)
 
         /**
@@ -251,7 +262,7 @@ class HibernateFactory internal constructor(private val sessionFactory: SessionF
          */
         @JvmStatic
         @Suppress("UNCHECKED_CAST")
-        fun <T : Any> selectListBySql(tClass: Class<T>, sql: String, params: Map<String, Any> = emptyMap()): List<T> {
+        fun <T : Any> selectListBySql(tClass: Class<T>, sql: String, params: Map<String, Any?> = emptyMap()): List<T> {
             return factory.sessionFactory.fromSession { session ->
                 val query = session.createNativeQuery(sql, tClass)
                 params.forEach { (k, v) -> query.setParameter(k, v) }
@@ -262,7 +273,7 @@ class HibernateFactory internal constructor(private val sessionFactory: SessionF
         /**
          * Kotlin 友好的 SQL 查询集合
          */
-        inline fun <reified T : Any> selectListBySql(sql: String, params: Map<String, Any> = emptyMap()): List<T> =
+        inline fun <reified T : Any> selectListBySql(sql: String, params: Map<String, Any?> = emptyMap()): List<T> =
             selectListBySql(T::class.java, sql, params)
 
         /**
@@ -302,7 +313,7 @@ class HibernateFactory internal constructor(private val sessionFactory: SessionF
 
         private fun <T : Any> getQuery(
             tClass: Class<T>,
-            params: Map<String, Any>,
+            params: Map<String, Any?>,
             session: Session
         ): JpaCriteriaQuery<T> {
             val builder: HibernateCriteriaBuilder = session.criteriaBuilder
