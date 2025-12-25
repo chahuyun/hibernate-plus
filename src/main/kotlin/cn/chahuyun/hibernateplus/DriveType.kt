@@ -43,7 +43,7 @@ enum class DriveType {
  *
  * @return 对应数据库类型的JDBC URL前缀字符串
  */
-val DriveType.urlPrefix: String
+internal val DriveType.urlPrefix: String
     get() = when (this) {
         DriveType.H2 -> "jdbc:h2:file:"
         DriveType.SQLITE -> "jdbc:sqlite:"
@@ -58,7 +58,7 @@ val DriveType.urlPrefix: String
  *
  * @return 对应数据库类型的JDBC驱动程序完全限定类名
  */
-val DriveType.driverClass: String
+internal val DriveType.driverClass: String
     get() = when (this) {
         DriveType.H2 -> "org.h2.Driver"
         DriveType.SQLITE -> "org.sqlite.JDBC"
