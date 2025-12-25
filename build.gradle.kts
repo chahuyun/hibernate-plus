@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "cn.chahuyun"
-version = "2.0.2"
+version = "2.0.3"
 
 dependencies {
     api("com.zaxxer:HikariCP:5.1.0")
@@ -66,8 +66,8 @@ publishing {
                 url.set("https://github.com/chahuyun/hibernate-plus")
                 licenses {
                     license {
-                        name.set("The Apache License, Version 2.0")
-                        url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+                        name.set("Apache-2.0 License")
+                        url.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
                     }
                 }
                 developers {
