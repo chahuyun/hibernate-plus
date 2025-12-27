@@ -91,6 +91,14 @@ publishing {
             name = "localRepo"
             url = uri(layout.buildDirectory.dir("repo"))
         }
+        maven {
+            name = "chahuyun"
+            url = uri("https://nexus.chahuyun.cn/repository/maven-releases/")
+            credentials {
+                username = providers.gradleProperty("chahuyunUser").orNull
+                password = providers.gradleProperty("chahuyunPassword").orNull
+            }
+        }
     }
 }
 
