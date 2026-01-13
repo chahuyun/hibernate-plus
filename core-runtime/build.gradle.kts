@@ -23,7 +23,7 @@ publishing {
     publications {
         create<MavenPublication>("mavenJava") {
             from(components["java"])
-            artifactId = "hibernate-plus-core-runtime"
+            artifactId = "orm-core-runtime"
         }
     }
 }

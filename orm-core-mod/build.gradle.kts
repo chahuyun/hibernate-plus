@@ -12,11 +12,16 @@ java {
     withSourcesJar()
 }
 
+dependencies {
+    api(project(":core-api"))
+    api(project(":core-runtime"))
+}
+
 publishing {
     publications {
         create<MavenPublication>("mavenJava") {
             from(components["java"])
-            artifactId = "orm-core-api"
+            artifactId = "orm-core-mod"
         }
     }
 }

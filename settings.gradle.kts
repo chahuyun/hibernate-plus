@@ -22,4 +22,5 @@ include(
     ":core-api",
     ":core-runtime",
     ":impl-hibernate6",
+    ":orm-core-mod",
 )

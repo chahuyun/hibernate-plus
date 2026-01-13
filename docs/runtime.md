@@ -2,9 +2,13 @@
 
 本仓库从 `2.2.0` 起拆分为三层：
 
-- `hibernate-plus-core-api`：稳定的最小 API（`OrmProvider` / `OrmService` / `OrmConfig`）
-- `hibernate-plus-core-runtime`：下载 manifest、校验、验签、child-first 加载 provider
-- `hibernate-plus-impl-hibernate6`：Hibernate6 具体实现（包含 Hibernate/Hikari/JDBC/Reflections 等）
+- `orm-core-api`：稳定的最小 API（`OrmProvider` / `OrmService` / `OrmConfig`）
+- `orm-core-runtime`：下载 manifest、校验、验签、child-first 加载 provider
+- `hibernate-plus`：Hibernate6 具体实现（包含 Hibernate/Hikari/JDBC/Reflections 等）
+
+同时提供一个便捷聚合依赖：
+
+- `orm-core-mod`：等价于同时引入 `orm-core-api` + `orm-core-runtime`
 
 ## 1. Manifest 格式
 
@@ -16,8 +20,8 @@
   "version": "6.5.2.Final-impl.1",
   "artifacts": [
     {
-      "fileName": "hibernate-plus-impl-hibernate6-2.2.0.jar",
-      "url": "https://your.domain/artifacts/hibernate-plus-impl-hibernate6-2.2.0.jar",
+      "fileName": "hibernate-plus-2.2.0.jar",
+      "url": "https://your.domain/artifacts/hibernate-plus-2.2.0.jar",
       "sha256": "...."
     }
   ],

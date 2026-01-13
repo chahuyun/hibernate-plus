@@ -22,11 +22,20 @@ class Hibernate6OrmProvider : OrmProvider {
     override val id: String = "hibernate6"
 
     override fun create(config: OrmConfig): OrmService {
-        val cl = config.appClassLoader
+        // appClassLoader：业务侧/Mod 的 ClassLoader（实体类在这里）
+        val appCl = config.appClassLoader
+
+        // providerCl：本 provider 自己的 ClassLoader（Hibernate/Hikari 等第三方依赖在这里）
+        // 在“按需下载 + child-first”模式下，这是隔离的关键。
+        val providerCl = this::class.java.classLoader
+
         val oldTccL = Thread.currentThread().contextClassLoader
 
         try {
-            Thread.currentThread().contextClassLoader = cl
+            // 关键点：
+            // - Hibernate 内部的 ServiceLoader/SPI/资源查找往往依赖 TCCL
+            // - 所以这里应当把 TCCL 指向 providerCl，确保能从隔离 jar 中正确发现服务实现
+            Thread.currentThread().contextClassLoader = providerCl
 
             val properties = Properties().apply {
                 config.settings.forEach { (k, v) -> setProperty(k, v) }
@@ -39,14 +48,18 @@ class Hibernate6OrmProvider : OrmProvider {
             }
 
             val bootstrapRegistry = BootstrapServiceRegistryBuilder()
-                .applyClassLoader(cl)
+                // 强制 Hibernate 在 providerCl 范围内查找 SPI 实现，避免串台到别的 Mod 依赖
+                .applyClassLoader(providerCl)
                 .build()
 
             val serviceRegistry = StandardServiceRegistryBuilder(bootstrapRegistry)
                 .applySettings(properties)
                 .build()
 
-            val sessionFactory = buildSessionFactory(serviceRegistry, config, cl)
+            // 实体扫描必须使用 appCl：实体类在业务侧 ClassLoader
+            // providerCl 的 parent 通常就是 appCl，因此 providerCl 也“看得见”实体类，
+            // 但扫描范围/资源定位应以 appCl 为准（更符合 Mod 环境）。
+            val sessionFactory = buildSessionFactory(serviceRegistry, config, appCl)
 
             return Hibernate6OrmService(sessionFactory, serviceRegistry)
         } catch (e: Exception) {

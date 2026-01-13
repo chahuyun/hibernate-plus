@@ -47,12 +47,14 @@ repositories {
 }
 
 dependencies {
-    // 直接使用 Hibernate6 实现（包含 Hibernate/Hikari/JDBC 等依赖）
-    implementation("cn.chahuyun:hibernate-plus-impl-hibernate6:2.2.0")
+    // 直接使用“原生简单易用”版本（包含 Hibernate/Hikari/JDBC 等依赖）
+    implementation("cn.chahuyun:hibernate-plus:2.2.0")
 
     // 如果你想做“运行时按需下载 + ClassLoader 隔离”，则在你的 Mod/项目里只依赖 core：
-    // implementation("cn.chahuyun:hibernate-plus-core-api:2.2.0")
-    // implementation("cn.chahuyun:hibernate-plus-core-runtime:2.2.0")
+    // implementation("cn.chahuyun:orm-core-api:2.2.0")
+    // implementation("cn.chahuyun:orm-core-runtime:2.2.0")
+    // 或者一键引入（等价于上面两个）：
+    // implementation("cn.chahuyun:orm-core-mod:2.2.0")
 }
 ```
 
@@ -60,7 +62,7 @@ dependencies {
 ```xml
 <dependency>
   <groupId>cn.chahuyun</groupId>
-  <artifactId>hibernate-plus-impl-hibernate6</artifactId>
+  <artifactId>hibernate-plus</artifactId>
   <version>2.2.0</version>
 </dependency>
 ```
@@ -147,6 +149,8 @@ loaded.close()   // 释放 child-first ClassLoader
 更多 API 使用说明请参考：[API 文档](docs/api.md)
 
 运行时加载/manifest/验签的更多说明请参考：[runtime 文档](docs/runtime.md)
+
+时序图请参考：[OrmRuntime 时序图](docs/sequence.md)
 
 ### 执照
 Apache License 2.0

@@ -51,7 +51,8 @@ publishing {
         create<MavenPublication>("mavenJava") {
             from(components["java"])
             artifact(dokkaJavadocJar)
-            artifactId = "hibernate-plus-impl-hibernate6"
+            // 这是“原生简单易用”的主坐标：不关心隔离环境时直接依赖它即可
+            artifactId = "hibernate-plus"
         }
     }
 }
