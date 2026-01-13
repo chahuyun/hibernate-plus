@@ -1,0 +1,23 @@
+plugins {
+    kotlin("jvm")
+    id("java-library")
+    id("maven-publish")
+}
+
+kotlin {
+    jvmToolchain(17)
+}
+
+java {
+    withSourcesJar()
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("mavenJava") {
+            from(components["java"])
+            artifactId = "hibernate-plus-core-api"
+        }
+    }
+}
+

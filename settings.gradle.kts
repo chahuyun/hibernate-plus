@@ -17,3 +17,9 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "hibernate-plus"
+
+include(
+    ":core-api",
+    ":core-runtime",
+    ":impl-hibernate6",
+)

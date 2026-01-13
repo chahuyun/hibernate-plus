@@ -5,6 +5,8 @@ hibernate 的一个强化集成模块，致力于以最小的配置连接你的�
 
 本项目深受 [mirai-hibernate-plugin](https://github.com/cssxsh/mirai-hibernate-plugin) 启发。
 
+> 说明：本项目目前以 **Hibernate 6.x** 为核心实现，运行环境建议 **Java 17（MC 1.18+）**。
+
 ### 特性
 * **极简配置**: 无需繁琐的 XML，几行代码即可完成初始化。
 * **多数据库支持**: 内置支持 H2, SQLite, MySQL, MariaDB, 以及高性能的 DuckDB。
@@ -45,7 +47,12 @@ repositories {
 }
 
 dependencies {
-    implementation("cn.chahuyun:hibernate-plus:2.0.0")
+    // 直接使用 Hibernate6 实现（包含 Hibernate/Hikari/JDBC 等依赖）
+    implementation("cn.chahuyun:hibernate-plus-impl-hibernate6:2.2.0")
+
+    // 如果你想做“运行时按需下载 + ClassLoader 隔离”，则在你的 Mod/项目里只依赖 core：
+    // implementation("cn.chahuyun:hibernate-plus-core-api:2.2.0")
+    // implementation("cn.chahuyun:hibernate-plus-core-runtime:2.2.0")
 }
 ```
 
@@ -53,14 +60,16 @@ dependencies {
 ```xml
 <dependency>
   <groupId>cn.chahuyun</groupId>
-  <artifactId>hibernate-plus</artifactId>
-  <version>2.0.0</version>
+  <artifactId>hibernate-plus-impl-hibernate6</artifactId>
+  <version>2.2.0</version>
 </dependency>
 ```
 
 ### 快速开始
 
-#### 1. 初始化配置
+#### 方式 A：直接使用 impl（最简单）
+
+##### 1. 初始化配置
 ```kotlin
 // Kotlin 示例
 val configuration = HibernatePlusService.createConfiguration(Test::class.java).apply {
@@ -85,7 +94,7 @@ class MyUser {
 }
 ```
 
-#### 3. 使用 API
+##### 3. 使用 API
 ```kotlin
 // 查询
 val users = HibernateFactory.selectList<MyUser>()
@@ -98,8 +107,46 @@ val saved = HibernateFactory.merge(user)
 val one = HibernateFactory.selectOne<MyUser>("name", "Moyu")
 ```
 
+#### 方式 B：core-runtime 运行时加载 impl（小巧 + 可隔离 + 可验签）
+
+核心思路：你的项目只依赖 `core-api/core-runtime`，启动时从你自己的服务器下载 `impl-hibernate6` 相关 jar，做 SHA256 校验 + RSA 验签，然后用 child-first ClassLoader 加载 provider。
+
+示例（Kotlin）：
+
+```kotlin
+import cn.chahuyun.hibernateplus.api.OrmConfig
+import cn.chahuyun.hibernateplus.runtime.OrmRuntime
+import java.io.File
+
+val runtime = OrmRuntime(cacheDir = File("config/yourmod/hibernate-plus-cache"))
+val loaded = runtime.loadProvider(
+    manifestUrl = "https://your.domain/hibernate-plus/manifest/hibernate6.json",
+    expectedProviderId = "hibernate6",
+    rsaPublicKeyBase64 = "BASE64_X509_RSA_PUBLIC_KEY",
+)
+
+val orm = loaded.provider.create(
+    OrmConfig(
+        appClassLoader = YourMod::class.java.classLoader,
+        entityPackage = "com.example.entity",
+        settings = mapOf(
+            "hibernate.connection.url" to "jdbc:sqlite:your.db",
+            "hibernate.connection.driver_class" to "org.sqlite.JDBC",
+            "hibernate.hbm2ddl.auto" to "update",
+        ),
+    )
+)
+
+// ... 使用 orm ...
+
+orm.close()      // 释放连接池/线程/锁
+loaded.close()   // 释放 child-first ClassLoader
+```
+
 ### 详细文档
 更多 API 使用说明请参考：[API 文档](docs/api.md)
+
+运行时加载/manifest/验签的更多说明请参考：[runtime 文档](docs/runtime.md)
 
 ### 执照
 Apache License 2.0
